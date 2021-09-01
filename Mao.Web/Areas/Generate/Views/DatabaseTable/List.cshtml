@@ -1,0 +1,238 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3 h2">
+        <a href="javascript: toDatabaseList();"><i class="fas fa-arrow-left"></i></a>
+        資料表列表
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="d-flex justify-content-between">
+            <div>
+                <a class="btn btn-success" href="javascript: addDatabaseTable();">新增</a>
+                <a class="btn btn-outline-primary" id="btn-edit-json" href="javascript: setSqlTablesJsonOpen();">編輯序列化結果</a>
+            </div>
+            <div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        編寫指令碼
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="javascript: generateUpdateTablesDescScript();">更新資料表描述</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="table-responsive">
+            <table id="table-database-table"></table>
+        </div>
+    </div>
+</div>
+
+<div id="modal-sql-tables" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">資料表欄位結構</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <label>JSON 或 XML 的序列化結果</label>
+                        <div class="float-right">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="getSqlTablesSolutionOpen();">SQL Server 的解決方案</button>
+                        </div>
+                        <textarea class="form-control" id="input-sql-tables" rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="setSqlTablesJson()">確認</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-sql-tables-solution" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">取得序列化結果的解決方案</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div>
+                            將以下 SQL 語法的執行結果 (XML 或 JSON 擇一) 貼上即可
+                        </div>
+                        <textarea class="form-control" id="input-sql-tables-solution" rows="30" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="modal-script">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" name="text-script" rows="20" readonly></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $("#table-database-table").bootstrapTable($.extend(true, {}, UI.component.bootstrapTable.defaultOptions, {
+            ajax: function (request) {
+                API.databaseTable.list({
+                    DatabaseId: getQueryString("DatabaseId")
+                }).then(function (response) {
+                    request.success(response.List);
+                });
+            },
+            columns: [
+                {
+                    width: 50,
+                    align: "center",
+                    formatter: UI.component.bootstrapTable.rowNumberFormatter
+                }, {
+                    title: "<span>資料表名稱</span>",
+                    field: "TableName",
+                    formatter: nameFormatter,
+                }, {
+                    title: "<span>簡化名稱</span>",
+                    field: "TableAlias",
+                }, {
+                    title: "<span>中文名稱</span>",
+                    field: "Description",
+                }, {
+                    width: 150,
+                    align: "center",
+                    formatter: buttonsFormatter,
+                },
+            ],
+        }));
+    });
+
+    function nameFormatter(value, row, index, field) {
+        var $link = $("<a>" + htmlEncode(value) + "</a>");
+        $link.attr("href", "@Url.Action("List", "DatabaseTableColumn")?DatabaseId=" + encodeURIComponent(row.DatabaseId) + "&TableName=" + encodeURIComponent(row.TableName));
+        return $link[0].outerHTML;
+    }
+    function buttonsFormatter(value, row, index, field) {
+        var buttons = $("<div></div>");
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-edit\"></span></a>")
+                .attr("href", "javascript: updateDatabaseTable(" + JSON.stringify(row.DatabaseId) + ", " + JSON.stringify(row.TableName) + ");"));
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-trash-alt\"></span></a>")
+                .attr("href", "javascript: deleteDatabaseTable(" + JSON.stringify(row.DatabaseId) + ", " + JSON.stringify(row.TableName) + ");"));
+        return buttons.html();
+    }
+
+    function toDatabaseList() {
+        location.href = "@Url.Action("List", "Database")";
+    }
+    function addDatabaseTable() {
+        location.href = "@Url.Action("Add", "DatabaseTable")?DatabaseId=" + getQueryString("DatabaseId");
+    }
+    function updateDatabaseTable(databaseId, tableName) {
+        location.href = "@Url.Action("Update", "DatabaseTable")?DatabaseId=" + encodeURIComponent(databaseId) + "&" + "TableName=" + encodeURIComponent(tableName);
+    }
+    function deleteDatabaseTable(databaseId, tableName) {
+        UI.confirm("確定要刪除資料表嗎", "刪除資料表確認")
+            .then(function (isConfirmed) {
+                if (isConfirmed) {
+                    return API.databaseTable.delete({
+                        DatabaseId: databaseId,
+                        TableName: tableName
+                    });
+                }
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    UI.notice("刪除資料表完成", "success");
+                    $("#table-database-table").bootstrapTable("refresh");
+                }
+            });
+    }
+
+    /** 編輯序列化結果 */
+    function setSqlTablesJsonOpen() {
+        API.databaseTable.list({
+            DatabaseId: getQueryString("DatabaseId"),
+            IncludeColumns: true
+        }).then(function (response) {
+            if (response.List) {
+                return API.databaseTable.convertToSqlTablesSerialized({
+                    Tables: response.List
+                });
+            }
+        }).then(function (response) {
+            $("#input-sql-tables").val(response.Serialized);
+            $("#modal-sql-tables").modal("show");
+        });
+    }
+    /** 編輯序列化結果 */
+    function setSqlTablesJson() {
+        API.databaseTable.convertFromSqlTablesSerialized({
+            JsonOrXml: $("#input-sql-tables").val()
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                return API.databaseTable.updateList({
+                    DatabaseId: getQueryString("DatabaseId"),
+                    Tables: response.Tables
+                });
+            }
+            if (response.Message) {
+                UI.alert(response.Message, "解析資料表結構異常");
+            }
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                UI.notice("更新資料表完成", "success");
+                $("#modal-sql-tables").modal("hide");
+                $("#table-database-table").bootstrapTable("refresh");
+            }
+        });
+    }
+    function getSqlTablesSolutionOpen() {
+        $("#modal-sql-tables").on("hidden.bs.modal", function () {
+            API.databaseTable.getSerializeSqlTablesScript({
+                DbProvider: "SqlServer"
+            }).then(function (response) {
+                $("#input-sql-tables-solution").val(response.Script);
+                $("#modal-sql-tables-solution").modal("show");
+                $("#modal-sql-tables-solution").off("hidden.bs.modal");
+                $("#modal-sql-tables-solution").on("hidden.bs.modal", function () {
+                    $("#modal-sql-tables").off("hidden.bs.modal");
+                    $("#modal-sql-tables").modal("show");
+                });
+            });
+        });
+        $("#modal-sql-tables").modal("hide");
+    }
+
+    function generateUpdateTablesDescScript() {
+        API.databaseTable.getUpdateTablesDescScript({
+            DatabaseId: getQueryString("DatabaseId"),
+            DbProvider: "SqlServer"
+        }).then(function (response) {
+            $("#modal-script .modal-title").text("更新資料表描述");
+            $("#modal-script [name='text-script']").val(response.Script);
+            $("#modal-script").modal("show");
+        });
+    }
+</script>

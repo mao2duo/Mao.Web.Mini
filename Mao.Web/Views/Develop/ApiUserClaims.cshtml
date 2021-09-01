@@ -1,0 +1,26 @@
+﻿<h2>ApiUserClaims</h2>
+<div class="row">
+    <div class="col-12" id="div-content">
+        @helper RenderClaimDictionary(Dictionary<string, string> claimDictionary)
+        {
+            if (claimDictionary != null)
+            {
+                @Html.Raw(Json.Encode(claimDictionary))
+            }
+        }
+    </div>
+    <div class="col-12">
+        <button type="button" onclick="getClaimDictionary()">確定</button>
+    </div>
+</div>
+
+<script>
+    function getClaimDictionary() {
+        API.get("/api/User/Claims")
+            .then(function (response) {
+                return UI.render.razorHelper("", "RenderClaimDictionary", response);
+            }).then(function (rendered) {
+                $("#div-content").html(rendered);
+            });
+    }
+</script>

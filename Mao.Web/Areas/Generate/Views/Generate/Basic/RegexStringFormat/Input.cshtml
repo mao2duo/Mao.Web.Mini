@@ -1,0 +1,68 @@
+﻿@{
+    Layout = "~/Areas/Generate/Views/Generate/Input.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12 form-group">
+        <label>待處理資料</label>
+        <textarea class="form-control" name="InputData" rows="10"></textarea>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>解析參數的正規表達式</label>
+        <input type="text" class="form-control" name="InputRegular" />
+    </div>
+    <div class="col-md-12 form-group">
+        <label>輸出參數字串格式</label>
+        <textarea class="form-control" name="OutputFormat" rows="10"></textarea>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>串接資料行的符號</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="OutputSeparatorOptions" id="OutputSeparatorOptions1" value="1" checked>
+                <label class="form-check-label" for="OutputSeparatorOptions1">換行 (\n)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="OutputSeparatorOptions" id="OutputSeparatorOptions2" value="2">
+                <label class="form-check-label" for="OutputSeparatorOptions2">縮排 (\t)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="OutputSeparatorOptions" id="OutputSeparatorOptions0" value="0">
+                <label class="form-check-label" for="OutputSeparatorOptions0">自訂</label>
+            </div>
+        </div>
+        <input type="text" class="form-control" name="OutputSeparator" />
+    </div>
+</div>
+
+<script type="text/javascript">
+    var outputSeparator;
+
+    $(function () {
+        $("[name='OutputSeparatorOptions']").on("change", function () {
+            var outputSeparatorOptionValue = $("[name='OutputSeparatorOptions']:checked").val();
+            if (outputSeparatorOptionValue == "0") {
+                outputSeparator = "";
+            }
+            if (outputSeparatorOptionValue == "1") {
+                outputSeparator = "\n";
+            }
+            if (outputSeparatorOptionValue == "2") {
+                outputSeparator = "\t";
+            }
+            $("[name='OutputSeparator']").prop("readonly", outputSeparatorOptionValue != "0");
+        }).trigger("change");
+    });
+
+    function overrideGetRequestAsync(callback) {
+        defaultGetRequestAsync(function (request) {
+            var outputSeparatorOptionValue = $("[name='OutputSeparatorOptions']:checked").val();
+            for (var i in request) {
+                if (request[i].name == "OutputSeparator" && outputSeparatorOptionValue != "0") {
+                    request[i].value = outputSeparator;
+                }
+            }
+            callback(request);
+        });
+    }
+</script>

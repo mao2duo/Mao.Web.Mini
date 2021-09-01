@@ -1,0 +1,236 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3 h2">
+        <a href="javascript: toDatabaseTableList();"><i class="fas fa-arrow-left"></i></a>
+        資料欄位列表
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="d-flex justify-content-between">
+            <div>
+                <a class="btn btn-primary" id="btn-edit" href="javascript: editDatabaseTableColumns();">編輯</a>
+                <a class="btn btn-outline-primary" id="btn-edit-json" href="javascript: setSqlColumnsSerialize();">編輯序列化結果</a>
+                <a class="btn btn-success" id="btn-add" href="javascript: addDatabaseTableColumn();">新增</a>
+                <a class="btn btn-primary" id="btn-save" href="javascript: saveDatabaseTableColumns();">儲存</a>
+                <a class="btn btn-secondary" id="btn-cancel" href="javascript: editDatabaseTableColumnsCancel();">取消</a>
+            </div>
+            <div>
+                <div class="btn-group" id="btn-scripts">
+                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        編寫指令碼
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="javascript: generateUpdateColumnsDescScript();">更新資料表描述</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="table-responsive">
+            <table id="table-database-table-column"></table>
+        </div>
+    </div>
+</div>
+
+@* 編寫指令碼 *@
+<div class="modal" tabindex="-1" role="dialog" id="modal-script">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" name="text-script" rows="20" readonly></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Areas/Generate/Views/Shared/Partials/SqlColumnsSerializeEditor.cshtml")
+
+<script type="text/javascript">
+    var onEdit = false;
+    var databaseTableColumns = [];
+    $(function () {
+        $("#table-database-table-column").bootstrapTable($.extend(true, {}, UI.component.bootstrapTable.defaultOptions, {
+            pagination: false,
+            classes: "table table-bordered table-striped table-hover table-sm",
+            ajax: function (request) {
+                $("#btn-edit, #btn-add, #btn-save, #btn-cancel, #btn-edit-json, #btn-scripts").hide();
+                if (!onEdit) {
+                    API.databaseTableColumn.list({
+                        DatabaseId: getQueryString("DatabaseId"),
+                        TableName: getQueryString("TableName"),
+                    }).then(function (response) {
+                        request.success(databaseTableColumns = response.List);
+                        $("#btn-edit, #btn-edit-json, #btn-scripts").show();
+                    });
+                }
+                else {
+                    request.success(databaseTableColumns);
+                    $("#btn-add, #btn-save, #btn-cancel").show();
+                }
+            },
+            columns: [
+                {
+                    width: 50,
+                    align: "center",
+                    formatter: buttonsFormatter
+                }, {
+                    title: "<div class='text-center'>主鍵</div>",
+                    field: "IsPrimaryKey",
+                    formatter: inputCheckboxFormatter
+                }, {
+                    title: "<span>資料行名稱</span>",
+                    field: "ColumnName",
+                    formatter: inputTextFormatter
+                }, {
+                    title: "<span>資料類型</span>",
+                    field: "TypeFullName",
+                    formatter: inputTextFormatter
+                }, {
+                    title: "<div class='text-center'>允許 NULL</div>",
+                    field: "IsNullable",
+                    formatter: inputCheckboxFormatter
+                }, {
+                    title: "<span>預設值</span>",
+                    field: "DefaultDefine",
+                    formatter: inputTextFormatter
+                }, {
+                    title: "<span>描述</span>",
+                    field: "Description",
+                    formatter: inputTextFormatter
+                }, {
+                    title: "<div class='text-center'>識別規格</div>",
+                    field: "IsIdentity",
+                    formatter: inputCheckboxFormatter
+                }, {
+                    title: "<div class='text-center'>計算欄位</div>",
+                    field: "IsComputed",
+                    formatter: inputCheckboxFormatter
+                },
+            ],
+        }));
+    });
+
+    function buttonsFormatter(value, row, index, field) {
+        if (onEdit) {
+            var buttons = $("<div></div>");
+            buttons.append(
+                $("<a class=\"btn btn-xs\"><i class=\"fas fa-trash-alt\"></i></a>")
+                    .attr("href", "javascript: deleteDatabaseTableColumn(" + index + ");"));
+            return buttons.html();
+        }
+        return (index + 1);
+    }
+    function inputTextFormatter(value, row, index, field) {
+        if (onEdit) {
+            var $input = $('<input type="text" class="form-control">');
+            $input.attr("name", field);
+            $input.attr("value", value);
+            return $input[0].outerHTML;
+        }
+        return value;
+    }
+    function inputCheckboxFormatter(value, row, index, field) {
+        if (onEdit) {
+            var $input = $('<input type="checkbox">');
+            $input.attr("name", field);
+            if ((typeof value == "boolean" && value == true)
+                || (typeof value == "number" && value == 1)
+                || (typeof value == "string" && (value == "1" || value.toLowerCase() == "t" || value.toLowerCase() == "true"))) {
+                $input.attr("checked", "checked");
+            }
+            return '<div class="text-center">' + $input[0].outerHTML + '</div>';
+        }
+        return UI.component.bootstrapTable.booleanFormatter(value, row, index, field);
+    }
+
+    function toDatabaseTableList() {
+        location.href = "@Url.Action("List", "DatabaseTable")" + "?" + "DatabaseId=" + encodeURIComponent(getQueryString("DatabaseId"));
+    }
+
+    function addDatabaseTableColumn() {
+        databaseTableColumns.push({});
+        $("#table-database-table-column").bootstrapTable("refresh");
+    }
+    function editDatabaseTableColumns() {
+        onEdit = true;
+        $("#table-database-table-column").bootstrapTable("refresh");
+    }
+    function editDatabaseTableColumnsCancel() {
+        onEdit = false;
+        $("#table-database-table-column").bootstrapTable("refresh");
+    }
+    function saveDatabaseTableColumns() {
+        $("#table-database-table-column tbody tr").each(function (i, e) {
+            databaseTableColumns[i].IsPrimaryKey = $(e).find("[name='IsPrimaryKey']").prop("checked");
+            databaseTableColumns[i].ColumnName = $(e).find("[name='ColumnName']").val();
+            databaseTableColumns[i].TypeFullName = $(e).find("[name='TypeFullName']").val();
+            databaseTableColumns[i].IsNullable = $(e).find("[name='IsNullable']").prop("checked");
+            databaseTableColumns[i].DefaultDefine = $(e).find("[name='DefaultDefine']").val();
+            databaseTableColumns[i].Description = $(e).find("[name='Description']").val();
+            databaseTableColumns[i].IsIdentity = $(e).find("[name='IsIdentity']").prop("checked");
+            databaseTableColumns[i].IsComputed = $(e).find("[name='IsComputed']").prop("checked");
+        });
+        API.databaseTableColumn.updateList({
+            DatabaseId: getQueryString("DatabaseId"),
+            TableName: getQueryString("TableName"),
+            Columns: databaseTableColumns
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                onEdit = false;
+                UI.notice("更新資料表欄位完成", "success");
+                $("#table-database-table-column").bootstrapTable("refresh");
+            }
+        });
+    }
+    function deleteDatabaseTableColumn(index) {
+        databaseTableColumns.splice(index, 1);
+        $("#table-database-table-column").bootstrapTable("refresh");
+    }
+
+    /** 編輯序列化結果 */
+    function setSqlColumnsSerialize() {
+        API.databaseTableColumn.list({
+            DatabaseId: getQueryString("DatabaseId"),
+            TableName: getQueryString("TableName"),
+        }).then(function (response) {
+            return API.databaseTableColumn.convertToSqlColumnsSerialized({
+                Columns: response.List
+            });
+        }).catch(function (message) {
+            UI.alert(message, "解析資料表欄位結構異常");
+        }).then(function (response) {
+            return openSqlColumnsSerializeEditor(getQueryString("TableName"), response.Serialized);
+        }).then(function (serialized) {
+            return API.databaseTableColumn.convertFromSqlColumnsSerialized({
+                JsonOrXml: serialized
+            });
+        }).then(function (response) {
+            return API.databaseTableColumn.updateList({
+                DatabaseId: getQueryString("DatabaseId"),
+                TableName: getQueryString("TableName"),
+                Columns: response.Columns
+            });
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                UI.notice("更新資料表欄位完成", "success");
+                $("#table-database-table-column").bootstrapTable("refresh");
+            }
+        });
+    }
+    function generateUpdateColumnsDescScript() {
+        API.databaseTableColumn.getUpdateColumnsDescScript({
+            DatabaseId: getQueryString("DatabaseId"),
+            TableName: getQueryString("TableName"),
+            DbProvider: "SqlServer"
+        }).then(function (response) {
+            $("#modal-script .modal-title").text("更新資料表描述");
+            $("#modal-script [name='text-script']").val(response.Script);
+            $("#modal-script").modal("show");
+        });
+    }
+</script>

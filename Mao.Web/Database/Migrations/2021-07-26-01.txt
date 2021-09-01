@@ -1,0 +1,306 @@
+﻿-- Table: AppCode
+CREATE TABLE [dbo].[AppCode](
+    [Type] varchar(200) NOT NULL,
+    [Key] varchar(200) NOT NULL,
+    [Value] nvarchar(max) NULL,
+    [Text] nvarchar(200) NULL,
+    [Note] nvarchar(500) NULL,
+    [Priority] int NOT NULL,
+    [IsActivated] bit NOT NULL,
+ CONSTRAINT [PK_AppCode] PRIMARY KEY CLUSTERED
+(
+    [Type] ASC,
+    [Key] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'類別' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'Type'
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'索引' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'Key'
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'參數' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'Value'
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'顯示名稱' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'Text'
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'備註' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'Note'
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'優先權' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'Priority'
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'是否啟用' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'AppCode', @level2type=N'COLUMN',@level2name=N'IsActivated'
+GO
+
+-- Table: AppCodeParameter
+CREATE TABLE [dbo].[AppCodeParameter](
+    [CodeType] [varchar](200) NOT NULL,
+    [CodeKey] [varchar](200) NOT NULL,
+    [Name] [varchar](200) NOT NULL,
+    [Value] [nvarchar](max) NULL,
+ CONSTRAINT [PK_AppCodeParameter] PRIMARY KEY CLUSTERED 
+(
+    [CodeType] ASC,
+    [CodeKey] ASC,
+    [Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+-- Table: AppUser
+CREATE TABLE [dbo].[AppUser](
+    [Id] [uniqueidentifier] NOT NULL,
+    [Account] [nvarchar](200) NOT NULL,
+    [PasswordHash] [nvarchar](max) NOT NULL,
+    [DisplayName] [nvarchar](500) NOT NULL,
+    [Email] [nvarchar](max) NULL,
+    [EmailConfirmed] [bit] NOT NULL,
+    [PhoneNumber] [varchar](100) NULL,
+    [PhoneNumberConfirmed] [bit] NOT NULL,
+ CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+-- Table: AppUserClaim
+CREATE TABLE [dbo].[AppUserClaim](
+    [Id] [uniqueidentifier] NOT NULL,
+    [UserId] [uniqueidentifier] NOT NULL,
+    [ClaimType] [nvarchar](max) NOT NULL,
+    [ClaimValue] [nvarchar](max) NULL,
+ CONSTRAINT [PK_UserClaim] PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+-- Table: AppUserRole
+CREATE TABLE [dbo].[AppUserRole](
+    [UserId] [uniqueidentifier] NOT NULL,
+    [RoleId] [uniqueidentifier] NOT NULL,
+ CONSTRAINT [PK_UserRole] PRIMARY KEY CLUSTERED 
+(
+    [UserId] ASC,
+    [RoleId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- Table: AppUserToken
+CREATE TABLE [dbo].[AppUserToken](
+    [UserId] [uniqueidentifier] NOT NULL,
+    [Provider] [nvarchar](100) NOT NULL,
+    [Name] [nvarchar](100) NOT NULL,
+    [Value] [nvarchar](500) NULL,
+ CONSTRAINT [PK_AppUserToken] PRIMARY KEY CLUSTERED 
+(
+    [UserId] ASC,
+    [Provider] ASC,
+    [Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- Table: AppRole
+CREATE TABLE [dbo].[AppRole](
+    [Id] [uniqueidentifier] NOT NULL,
+    [Name] [nvarchar](200) NOT NULL,
+ CONSTRAINT [PK_Role] PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- Table: AppRoleClaim
+CREATE TABLE [dbo].[AppRoleClaim](
+    [Id] [uniqueidentifier] NOT NULL,
+    [RoleId] [uniqueidentifier] NOT NULL,
+    [ClaimType] [nvarchar](max) NOT NULL,
+    [ClaimValue] [nvarchar](max) NULL,
+ CONSTRAINT [PK_RoleClaim] PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+-- Table: AppMenu
+CREATE TABLE [dbo].[AppMenu](
+    [Id] [uniqueidentifier] NOT NULL,
+    [ParentId] [uniqueidentifier] NULL,
+    [Name] [nvarchar](50) NULL,
+    [Icon] [nvarchar](50) NULL,
+    [Text] [nvarchar](500) NULL,
+    [IsLink] [bit] NOT NULL,
+    [Href] [nvarchar](max) NULL,
+    [Target] [varchar](20) NULL,
+    [Sort] [int] NOT NULL,
+    [IsActivated] [bit] NOT NULL,
+ CONSTRAINT [PK_Menu] PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+-- Table: AppMenuRoute
+CREATE TABLE [dbo].[AppMenuRoute](
+	[MenuId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[Value] [nvarchar](200) NULL,
+ CONSTRAINT [PK_AppMenuRoute] PRIMARY KEY CLUSTERED 
+(
+	[MenuId] ASC,
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- Table: AppFile
+CREATE TABLE [dbo].[AppFile](
+	[Id] [uniqueidentifier] NOT NULL,
+	[CreatedAt] [datetime] NOT NULL,
+	[CreatedBy] [uniqueidentifier] NULL,
+	[Thumbnail] [varchar](max) NULL,
+	[Name] [nvarchar](255) NOT NULL,
+	[Content] [varchar](max) NOT NULL,
+	[ContentType] [varchar](50) NOT NULL,
+	[Size] [int] NOT NULL,
+	[IsTemp] [bit] NOT NULL,
+	[IsDisposable] [bit] NOT NULL,
+ CONSTRAINT [PK_AppFile] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+CREATE TABLE [dbo].[Database](
+	[Id] [uniqueidentifier] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Description] [nvarchar](200) NULL,
+ CONSTRAINT [PK_Database] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+CREATE TABLE [dbo].[DatabaseTable](
+	[DatabaseId] [uniqueidentifier] NOT NULL,
+	[TableName] [nvarchar](100) NOT NULL,
+	[TableAlias] [nvarchar](100) NULL,
+	[Description] [nvarchar](200) NULL,
+ CONSTRAINT [PK_DatabaseTable] PRIMARY KEY CLUSTERED 
+(
+	[DatabaseId] ASC,
+	[TableName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+CREATE TABLE [dbo].[DatabaseTableColumn](
+	[DatabaseId] [uniqueidentifier] NOT NULL,
+	[TableName] [nvarchar](100) NOT NULL,
+	[ColumnName] [nvarchar](100) NOT NULL,
+	[TypeFullName] [varchar](100) NULL,
+	[IsNullable] [bit] NOT NULL,
+	[IsPrimaryKey] [bit] NOT NULL,
+	[IsIdentity] [bit] NOT NULL,
+	[IsComputed] [bit] NOT NULL,
+	[DefaultDefine] [nvarchar](200) NULL,
+	[Description] [nvarchar](max) NULL,
+    [Sort] [int] NOT NULL,
+ CONSTRAINT [PK_UserDatabaseTableColumn] PRIMARY KEY CLUSTERED 
+(
+	[DatabaseId] ASC,
+	[TableName] ASC,
+	[ColumnName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+CREATE TABLE [dbo].[GenerateInput](
+	[Id] [uniqueidentifier] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[Provider] [varchar](100) NOT NULL,
+	[Module] [varchar](100) NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Description] [nvarchar](200) NULL,
+	[Serialization] [nvarchar](max) NULL,
+ CONSTRAINT [PK_GenerateInput] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+
+INSERT INTO [AppMenu] ([Id], [ParentId], [Name], [Icon], [Text], [Href], [Target], [Sort], [IsActivated], [IsLink])
+VALUES 
+(N'7799c7c7-860f-4514-b8b9-ee635a3bb41c', NULL, N'Generate', NULL, NULL, NULL, NULL, 1, 1, 0),
+    (N'ca5afb87-b3d5-40c7-86dc-cc018441d292', N'7799c7c7-860f-4514-b8b9-ee635a3bb41c', NULL, NULL, N'個人儲存資料', NULL, NULL, 1, 1, 0), 
+        (N'7564067d-a3cb-4ff3-b7da-4619d56736ac', N'ca5afb87-b3d5-40c7-86dc-cc018441d292', NULL, NULL, N'資料庫結構', NULL, NULL, 1, 1, 1), 
+        (N'fa517d59-866b-4c74-8558-4b2242413055', N'ca5afb87-b3d5-40c7-86dc-cc018441d292', NULL, NULL, N'已儲存參數', NULL, NULL, 2, 1, 1), 
+    (N'dad1baf5-6d1a-43ec-9654-d1fce1698052', N'7799c7c7-860f-4514-b8b9-ee635a3bb41c', NULL, NULL, N'文字範本', NULL, NULL, 2, 1, 0), 
+        (N'a5aba01f-7814-441a-b270-5571e09ad85e', N'dad1baf5-6d1a-43ec-9654-d1fce1698052', NULL, NULL, N'資料處理', NULL, NULL, 1, 1, 0), 
+            (N'92163b40-9af6-446f-8ef7-641d298b721e', N'a5aba01f-7814-441a-b270-5571e09ad85e', NULL, NULL, N'資料轉置', NULL, NULL, 1, 1, 1), 
+            (N'bf6a86ef-3e19-49df-98e0-3a02bf9961a2', N'a5aba01f-7814-441a-b270-5571e09ad85e', NULL, NULL, N'資料排序 (Spilt)', NULL, NULL, 2, 1, 1), 
+            (N'cc64ea97-5615-4489-a7a4-d5f72e037e2b', N'a5aba01f-7814-441a-b270-5571e09ad85e', NULL, NULL, N'資料排序 (Regex)', NULL, NULL, 3, 1, 1), 
+            (N'5f13a33c-5f4f-4c81-966e-8e430cf73293', N'a5aba01f-7814-441a-b270-5571e09ad85e', NULL, NULL, N'格式化輸出字串 (Split)', NULL, NULL, 4, 1, 1), 
+            (N'7701e26c-ebd2-440d-8d71-783f075faccc', N'a5aba01f-7814-441a-b270-5571e09ad85e', NULL, NULL, N'格式化輸出字串 (Regex)', NULL, NULL, 5, 1, 1), 
+            (N'7644ee30-f08e-4500-9b0a-2511aa4cb63f', N'a5aba01f-7814-441a-b270-5571e09ad85e', NULL, NULL, N'字串取代', NULL, NULL, 6, 1, 1), 
+        (N'3e3f51f6-903b-409d-bb9c-90484c2d0184', N'dad1baf5-6d1a-43ec-9654-d1fce1698052', NULL, NULL, N'通用', NULL, NULL, 2, 1, 0), 
+            (N'acf0e195-da48-44d4-a12a-140140100381', N'3e3f51f6-903b-409d-bb9c-90484c2d0184', NULL, NULL, N'依賴注入建構子', NULL, NULL, 1, 1, 1), 
+            (N'5b18a76b-626a-4df5-ae53-4b9ddd5874d7', N'3e3f51f6-903b-409d-bb9c-90484c2d0184', NULL, NULL, N'MediatR', NULL, NULL, 2, 1, 1), 
+        (N'177bcc15-44fc-4b71-b9d6-1b2a29997a08', N'dad1baf5-6d1a-43ec-9654-d1fce1698052', NULL, NULL, N'Mao.Web.Mini', NULL, NULL, 3, 1, 0), 
+            (N'd599ee18-4cc0-49be-94c2-58a3bf5458f7', N'177bcc15-44fc-4b71-b9d6-1b2a29997a08', NULL, NULL, N'查詢與列表', NULL, NULL, 1, 1, 1), 
+            (N'fe182d8c-e01e-403c-acd6-90726590c15f', N'177bcc15-44fc-4b71-b9d6-1b2a29997a08', NULL, NULL, N'資料表管理功能', NULL, NULL, 2, 1, 1), 
+        (N'a8f4e844-a8a5-4841-8c33-2765bb8cbad3', N'dad1baf5-6d1a-43ec-9654-d1fce1698052', NULL, NULL, N'開發工具', NULL, NULL, 4, 1, 0), 
+            (N'36002882-68a7-4f1d-814e-e99c4420ed98', N'a8f4e844-a8a5-4841-8c33-2765bb8cbad3', NULL, NULL, N'文字範本', NULL, NULL, 1, 1, 1)
+
+INSERT INTO [AppMenuRoute] ([MenuId], [Name], [Value])
+VALUES 
+(N'7564067d-a3cb-4ff3-b7da-4619d56736ac', N'Action', N'List'), 
+(N'7564067d-a3cb-4ff3-b7da-4619d56736ac', N'Controller', N'Database'), 
+(N'fa517d59-866b-4c74-8558-4b2242413055', N'Action', N'List'), 
+(N'fa517d59-866b-4c74-8558-4b2242413055', N'Controller', N'GenerateInput'), 
+(N'92163b40-9af6-446f-8ef7-641d298b721e', N'Action', N'Input'), 
+(N'92163b40-9af6-446f-8ef7-641d298b721e', N'Controller', N'Generate'), 
+(N'92163b40-9af6-446f-8ef7-641d298b721e', N'Module', N'SplitTranspose'), 
+(N'92163b40-9af6-446f-8ef7-641d298b721e', N'Provider', N'Basic'), 
+(N'bf6a86ef-3e19-49df-98e0-3a02bf9961a2', N'Action', N'Input'), 
+(N'bf6a86ef-3e19-49df-98e0-3a02bf9961a2', N'Controller', N'Generate'), 
+(N'bf6a86ef-3e19-49df-98e0-3a02bf9961a2', N'Module', N'SplitOrder'), 
+(N'bf6a86ef-3e19-49df-98e0-3a02bf9961a2', N'Provider', N'Basic'), 
+(N'cc64ea97-5615-4489-a7a4-d5f72e037e2b', N'Action', N'Input'), 
+(N'cc64ea97-5615-4489-a7a4-d5f72e037e2b', N'Controller', N'Generate'), 
+(N'cc64ea97-5615-4489-a7a4-d5f72e037e2b', N'Module', N'RegexOrder'), 
+(N'cc64ea97-5615-4489-a7a4-d5f72e037e2b', N'Provider', N'Basic'), 
+(N'5f13a33c-5f4f-4c81-966e-8e430cf73293', N'Action', N'Input'), 
+(N'5f13a33c-5f4f-4c81-966e-8e430cf73293', N'Controller', N'Generate'), 
+(N'5f13a33c-5f4f-4c81-966e-8e430cf73293', N'Module', N'SplitStringFormat'), 
+(N'5f13a33c-5f4f-4c81-966e-8e430cf73293', N'Provider', N'Basic'), 
+(N'7701e26c-ebd2-440d-8d71-783f075faccc', N'Action', N'Input'), 
+(N'7701e26c-ebd2-440d-8d71-783f075faccc', N'Controller', N'Generate'), 
+(N'7701e26c-ebd2-440d-8d71-783f075faccc', N'Module', N'RegexStringFormat'), 
+(N'7701e26c-ebd2-440d-8d71-783f075faccc', N'Provider', N'Basic'), 
+(N'7644ee30-f08e-4500-9b0a-2511aa4cb63f', N'Action', N'Input'), 
+(N'7644ee30-f08e-4500-9b0a-2511aa4cb63f', N'Controller', N'Generate'), 
+(N'7644ee30-f08e-4500-9b0a-2511aa4cb63f', N'Module', N'RegexReplace'), 
+(N'7644ee30-f08e-4500-9b0a-2511aa4cb63f', N'Provider', N'Basic'), 
+(N'acf0e195-da48-44d4-a12a-140140100381', N'Action', N'Input'), 
+(N'acf0e195-da48-44d4-a12a-140140100381', N'Controller', N'Generate'), 
+(N'acf0e195-da48-44d4-a12a-140140100381', N'Module', N'DependencyInjectionConstructor'), 
+(N'acf0e195-da48-44d4-a12a-140140100381', N'Provider', N'Basic'), 
+(N'5b18a76b-626a-4df5-ae53-4b9ddd5874d7', N'Action', N'Input'), 
+(N'5b18a76b-626a-4df5-ae53-4b9ddd5874d7', N'Controller', N'Generate'), 
+(N'5b18a76b-626a-4df5-ae53-4b9ddd5874d7', N'Module', N'MediatR'), 
+(N'5b18a76b-626a-4df5-ae53-4b9ddd5874d7', N'Provider', N'Basic'), 
+(N'd599ee18-4cc0-49be-94c2-58a3bf5458f7', N'Action', N'Input'), 
+(N'd599ee18-4cc0-49be-94c2-58a3bf5458f7', N'Controller', N'Generate'), 
+(N'd599ee18-4cc0-49be-94c2-58a3bf5458f7', N'Module', N'SearchList'), 
+(N'd599ee18-4cc0-49be-94c2-58a3bf5458f7', N'Provider', N'MaoWebMini'), 
+(N'fe182d8c-e01e-403c-acd6-90726590c15f', N'Action', N'Input'), 
+(N'fe182d8c-e01e-403c-acd6-90726590c15f', N'Controller', N'Generate'), 
+(N'fe182d8c-e01e-403c-acd6-90726590c15f', N'Module', N'TableManage'), 
+(N'fe182d8c-e01e-403c-acd6-90726590c15f', N'Provider', N'MaoWebMini'), 
+(N'36002882-68a7-4f1d-814e-e99c4420ed98', N'Action', N'Input'), 
+(N'36002882-68a7-4f1d-814e-e99c4420ed98', N'Controller', N'Generate'), 
+(N'36002882-68a7-4f1d-814e-e99c4420ed98', N'Module', N'Generate'), 
+(N'36002882-68a7-4f1d-814e-e99c4420ed98', N'Provider', N'Develop')

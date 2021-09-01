@@ -1,0 +1,231 @@
+﻿@{
+    Layout = "~/Areas/Generate/Views/Generate/Input.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12 form-group">
+        <label>待處理資料</label>
+        <textarea class="form-control" name="InputData" rows="10"></textarea>
+    </div>
+    <div class="col-md-6 form-group">
+        <label>分割資料行的符號</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="InputRowSeparatorOptions" id="InputRowSeparatorOptions1" value="1" checked>
+                <label class="form-check-label" for="InputRowSeparatorOptions1">換行 (\n)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="InputRowSeparatorOptions" id="InputRowSeparatorOptions2" value="2">
+                <label class="form-check-label" for="InputRowSeparatorOptions2">縮排 (\t)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="InputRowSeparatorOptions" id="InputRowSeparatorOptions0" value="0">
+                <label class="form-check-label" for="InputRowSeparatorOptions0">自訂</label>
+            </div>
+        </div>
+        <input type="text" class="form-control" name="InputRowSeparator" />
+    </div>
+    <div class="col-md-6 form-group">
+        <label>分割參數的符號</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="InputRowParameterSeparatorOptions" id="InputRowParameterSeparatorOptions1" value="1">
+                <label class="form-check-label" for="InputRowParameterSeparatorOptions1">換行 (\n)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="InputRowParameterSeparatorOptions" id="InputRowParameterSeparatorOptions2" value="2">
+                <label class="form-check-label" for="InputRowParameterSeparatorOptions2">縮排 (\t)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="InputRowParameterSeparatorOptions" id="InputRowParameterSeparatorOptions0" value="0" checked>
+                <label class="form-check-label" for="InputRowParameterSeparatorOptions0">自訂</label>
+            </div>
+        </div>
+        <input type="text" class="form-control" name="InputRowParameterSeparator" value=" " />
+    </div>
+    <div class="col-md-12 form-group">
+        <label>分割結果</label>
+        <button type="button" class="btn btn-info btn-sm ml-3" onclick="renderSplitResult();">預覽分割結果</button>
+        <table class="table table-bordered table-sm table-split-result">
+            @helper RenderSplitResult(Mao.Web.Areas.Generate.Views.Generate.Basic.SplitStringFormat.Input input)
+            {
+                // split rows
+                List<string> inputRows = new List<string>();
+                if (input.InputRowSeparator.Length > 0)
+                {
+                    string guid = Guid.NewGuid().ToString("N");
+                    inputRows.AddRange(input.InputData
+                        .Replace("-", guid)
+                        .Replace(input.InputRowSeparator, "-")
+                        .Split('-')
+                        .Select(x => x.Replace(guid, "-")));
+                }
+                else
+                {
+                    inputRows.Add(input.InputData);
+                }
+                // split parameters
+                List<IEnumerable<string>> inputRowParameters = new List<IEnumerable<string>>();
+                if (input.InputRowParameterSeparator.Length > 0)
+                {
+                    string guid = Guid.NewGuid().ToString("N");
+                    inputRowParameters.AddRange(inputRows
+                        .Select(x => x
+                            .Replace("-", guid)
+                            .Replace(input.InputRowParameterSeparator, "-")
+                            .Split('-')
+                            .Select(y => y.Replace(guid, "-"))));
+                }
+                else
+                {
+                    inputRowParameters.AddRange(inputRows.Select(x => new[] { x }));
+                }
+                int maxParameterLength = inputRowParameters.Max(x => x.Count());
+                <thead class="table-primary">
+                    <tr>
+                        <td></td>
+                        @for (int i = 0; i < maxParameterLength; i++)
+                        {
+                            <td>{@i}</td>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var inputRow in inputRowParameters)
+                    {
+                        <tr>
+                            <td class="table-primary">@(inputRowParameters.IndexOf(inputRow) + 1)</td>
+                            @for (int i = 0; i < maxParameterLength; i++)
+                            {
+                                <td>@inputRow.ElementAtOrDefault(i)</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            }
+        </table>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>輸出參數字串格式</label>
+        <button type="button" class="btn btn-info btn-sm ml-3" onclick="escapeOutputFormat();">取代大括號</button>
+        <textarea class="form-control" name="OutputFormat" rows="10"></textarea>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>串接資料行的符號</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="OutputSeparatorOptions" id="OutputSeparatorOptions1" value="1" checked>
+                <label class="form-check-label" for="OutputSeparatorOptions1">換行 (\n)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="OutputSeparatorOptions" id="OutputSeparatorOptions2" value="2">
+                <label class="form-check-label" for="OutputSeparatorOptions2">縮排 (\t)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="OutputSeparatorOptions" id="OutputSeparatorOptions0" value="0">
+                <label class="form-check-label" for="OutputSeparatorOptions0">自訂</label>
+            </div>
+        </div>
+        <input type="text" class="form-control" name="OutputSeparator" />
+    </div>
+</div>
+
+<script type="text/javascript">
+    /** 分割資料行的符號 */
+    var inputRowSeparator;
+    /** 分割參數的符號 */
+    var inputRowParameterSeparator;
+    /** 串接資料行的符號 */
+    var outputSeparator;
+
+    $(function () {
+        $("[name='InputRowSeparatorOptions']").on("change", function () {
+            var inputRowSeparatorOptionValue = $("[name='InputRowSeparatorOptions']:checked").val();
+            if (inputRowSeparatorOptionValue == "0") {
+                inputRowSeparator = "";
+            }
+            if (inputRowSeparatorOptionValue == "1") {
+                inputRowSeparator = "\n";
+            }
+            if (inputRowSeparatorOptionValue == "2") {
+                inputRowSeparator = "\t";
+            }
+            $("[name='InputRowSeparator']").prop("readonly", inputRowSeparatorOptionValue != "0");
+        }).trigger("change");
+        $("[name='InputRowParameterSeparatorOptions']").on("change", function () {
+            var inputRowParameterSeparatorOptionValue = $("[name='InputRowParameterSeparatorOptions']:checked").val();
+            if (inputRowParameterSeparatorOptionValue == "0") {
+                inputRowParameterSeparator = "";
+            }
+            if (inputRowParameterSeparatorOptionValue == "1") {
+                inputRowParameterSeparator = "\n";
+            }
+            if (inputRowParameterSeparatorOptionValue == "2") {
+                inputRowParameterSeparator = "\t";
+            }
+            $("[name='InputRowParameterSeparator']").prop("readonly", inputRowParameterSeparatorOptionValue != "0");
+        }).trigger("change");
+        $("[name='OutputSeparatorOptions']").on("change", function () {
+            var outputSeparatorOptionValue = $("[name='OutputSeparatorOptions']:checked").val();
+            if (outputSeparatorOptionValue == "0") {
+                outputSeparator = "";
+            }
+            if (outputSeparatorOptionValue == "1") {
+                outputSeparator = "\n";
+            }
+            if (outputSeparatorOptionValue == "2") {
+                outputSeparator = "\t";
+            }
+            $("[name='OutputSeparator']").prop("readonly", outputSeparatorOptionValue != "0");
+        }).trigger("change");
+    });
+
+    function overrideGetRequestAsync(callback) {
+        defaultGetRequestAsync(function (request) {
+            var inputRowSeparatorOptionValue = $("[name='InputRowSeparatorOptions']:checked").val();
+            var inputRowParameterSeparatorOptionValue = $("[name='InputRowParameterSeparatorOptions']:checked").val();
+            var outputSeparatorOptionValue = $("[name='OutputSeparatorOptions']:checked").val();
+            for (var i in request) {
+                if (request[i].name == "InputRowSeparator" && inputRowSeparatorOptionValue != "0") {
+                    request[i].value = inputRowSeparator;
+                }
+                if (request[i].name == "InputRowParameterSeparator" && inputRowParameterSeparatorOptionValue != "0") {
+                    request[i].value = inputRowParameterSeparator;
+                }
+                if (request[i].name == "OutputSeparator" && outputSeparatorOptionValue != "0") {
+                    request[i].value = outputSeparator;
+                }
+            }
+            callback(request);
+        });
+    }
+    function overrideSetRequestAsync(request) {
+        defaultSetRequestAsync(request);
+        renderSplitResult();
+    }
+    /** 預覽分割結果 */
+    function renderSplitResult() {
+        var inputRowSeparatorOptionValue = $("[name='InputRowSeparatorOptions']:checked").val();
+        var inputRowParameterSeparatorOptionValue = $("[name='InputRowParameterSeparatorOptions']:checked").val();
+        UI.render.razorHelper("", "RenderSplitResult", {
+            InputData: $("[name='InputData']").val(),
+            InputRowSeparator:
+                inputRowSeparatorOptionValue != "0" ?
+                    inputRowSeparator :
+                    $("[name='InputRowSeparator']").val(),
+            InputRowParameterSeparator:
+                inputRowParameterSeparatorOptionValue != "0" ?
+                    inputRowParameterSeparator :
+                    $("[name='InputRowParameterSeparator']").val()
+        }).then(function (rendered) {
+            $(".table-split-result").html(rendered);
+        });
+    }
+    /** 取代大括號 */
+    function escapeOutputFormat() {
+        var outputFormat = $("[name='OutputFormat']").val();
+        outputFormat = outputFormat.replace(/{/g, "{{");
+        outputFormat = outputFormat.replace(/}/g, "}}");
+        $("[name='OutputFormat']").val(outputFormat);
+    }
+</script>

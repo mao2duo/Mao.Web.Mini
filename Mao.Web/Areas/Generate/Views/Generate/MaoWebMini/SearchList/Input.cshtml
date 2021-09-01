@@ -1,0 +1,352 @@
+﻿@{
+    Layout = "~/Areas/Generate/Views/Generate/Input.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-4 form-group">
+        <label>專案名稱</label>
+        <input type="text" class="form-control" name="ProjectName" />
+    </div>
+    <div class="col-md-4 form-group">
+        <label>區域名稱 (Area)</label>
+        <input type="text" class="form-control" name="AreaName" />
+    </div>
+    <div class="col-md-4 form-group">
+        <label>控制器名稱 (Controller)</label>
+        <input type="text" class="form-control" name="ControllerName" />
+    </div>
+    <div class="col-md-4 form-group">
+        <label>檢視名稱 (View)</label>
+        <input type="text" class="form-control" name="ViewName" />
+    </div>
+    <div class="col-md-4 form-group">
+        <label>頁面標題</label>
+        <input type="text" class="form-control" name="PageTitle" />
+    </div>
+    <div class="col-md-2 form-group">
+        <label>匯出 Excel 功能</label>
+        <div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary active">
+                    <input type="radio" name="HasToExcel" value="True" autocomplete="off"> 是
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="HasToExcel" value="False" autocomplete="off" checked> 否
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 form-group">
+        <label>顯示行數</label>
+        <div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary active">
+                    <input type="radio" name="IsShowRowNumber" value="True" autocomplete="off" checked> 是
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="IsShowRowNumber" value="False" autocomplete="off"> 否
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>查詢條件</label>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="table-primary">
+                    <tr>
+                        <th>顯示名稱</th>
+                        <th>參數名稱</th>
+                        <th>資料類型</th>
+                        <th>輸入框元件</th>
+                        <th>載入行為</th>
+                        <th>資料檢查</th>
+                        <th class="text-center">
+                            <button type="button" class="btn btn-success btn-sm" onclick="addSearchInputSettings();"><i class="fas fa-plus"></i></button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="search-input-settings-container">
+                    @helper RenderSearchInputSettings()
+                    {
+                        int index = -1;
+                        Guid guid;
+                        <tr data-index="@index">
+                            <td>
+                                <input type="text" class="form-control" name="SearchInputSettings[@index].DisplayName" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="SearchInputSettings[@index].ParameterName" />
+                            </td>
+                            <td>
+                                @* 資料類型 *@
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].DataType" id="@guid" value="string" checked>
+                                    <label class="form-check-label" for="@guid">
+                                        String
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].DataType" id="@guid" value="bool">
+                                    <label class="form-check-label" for="@guid">
+                                        Boolean
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].DataType" id="@guid" value="int">
+                                    <label class="form-check-label" for="@guid">
+                                        Int32
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].DataType" id="@guid" value="decimal">
+                                    <label class="form-check-label" for="@guid">
+                                        Decimal
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].DataType" id="@guid" value="DateTime">
+                                    <label class="form-check-label" for="@guid">
+                                        DateTime
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].InputType" id="@guid" value="text" checked>
+                                    <label class="form-check-label" for="@guid">
+                                        文字輸入框
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].InputType" id="@guid" value="datepicker">
+                                    <label class="form-check-label" for="@guid">
+                                        日期元件
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].InputType" id="@guid" value="select">
+                                    <label class="form-check-label" for="@guid">
+                                        下拉選單 (單選)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].InputType" id="@guid" value="select2">
+                                    <label class="form-check-label" for="@guid">
+                                        下拉選單 (多選)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].InputType" id="@guid" value="radio">
+                                    <label class="form-check-label" for="@guid">
+                                        核選框 (單選)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="SearchInputSettings[@index].InputType" id="@guid" value="checkbox">
+                                    <label class="form-check-label" for="@guid">
+                                        核選框 (多選)
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="checkbox" name="SearchInputSettings[@index].OnLoad" id="@guid" value="GetDataSource">
+                                    <label class="form-check-label" for="@guid">
+                                        取得資料來源
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="checkbox" name="SearchInputSettings[@index].Validation" id="@guid" value="required">
+                                    <label class="form-check-label" for="@guid">
+                                        必填
+                                    </label>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteSearchInputSettings(this);"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>列表欄位</label>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="table-primary">
+                    <tr>
+                        <th>欄位標題</th>
+                        <th>對應欄位名稱</th>
+                        <th>資料類型</th>
+                        <th>自訂顯示方法</th>
+                        <th class="text-center">
+                            <button type="button" class="btn btn-success btn-sm" onclick="addListColumnSettings();"><i class="fas fa-plus"></i></button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="list-column-settings-container">
+                    @helper RenderListColumnSettings()
+                    {
+                        int index = -1;
+                        Guid guid;
+                        <tr data-index="@index">
+                            <td>
+                                <input type="text" class="form-control" name="ListColumnSettings[@index].ColumnTitle" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="ListColumnSettings[@index].ColumnName" />
+                            </td>
+                            <td>
+                                @* 資料類型 *@
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="ListColumnSettings[@index].DataType" id="@guid" value="string" checked>
+                                    <label class="form-check-label" for="@guid">
+                                        String
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="ListColumnSettings[@index].DataType" id="@guid" value="bool">
+                                    <label class="form-check-label" for="@guid">
+                                        Boolean
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="ListColumnSettings[@index].DataType" id="@guid" value="int">
+                                    <label class="form-check-label" for="@guid">
+                                        Int32
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="ListColumnSettings[@index].DataType" id="@guid" value="decimal">
+                                    <label class="form-check-label" for="@guid">
+                                        Decimal
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    @{ guid = Guid.NewGuid(); }
+                                    <input class="form-check-input" type="radio" name="ListColumnSettings[@index].DataType" id="@guid" value="DateTime">
+                                    <label class="form-check-label" for="@guid">
+                                        DateTime
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                @* 自訂顯示方法 *@
+                                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                    <label class="btn btn-secondary">
+                                        <input type="radio" name="ListColumnSettings[@index].HasFormatter" value="True" autocomplete="off"> 是
+                                    </label>
+                                    <label class="btn btn-secondary active">
+                                        <input type="radio" name="ListColumnSettings[@index].HasFormatter" value="False" autocomplete="off" checked> 否
+                                    </label>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteListColumnSettings(this);"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    /** 新增查詢條件 */
+    function addSearchInputSettings() {
+        return UI.render.razorHelper("", "RenderSearchInputSettings")
+            .then(function (rendered) {
+                $("#search-input-settings-container").append(rendered);
+                resetArrayIndex();
+            });
+    }
+    /** 移除查詢條件 */
+    function deleteSearchInputSettings(elem) {
+        $(elem).closest("tr[data-index]").remove();
+        resetArrayIndex();
+    }
+    /** 新增列表欄位 */
+    function addListColumnSettings() {
+        return UI.render.razorHelper("", "RenderListColumnSettings")
+            .then(function (rendered) {
+                $("#list-column-settings-container").append(rendered);
+                resetArrayIndex();
+            });
+    }
+    /** 移除列表欄位 */
+    function deleteListColumnSettings(elem) {
+        $(elem).closest("tr[data-index]").remove();
+        resetArrayIndex();
+    }
+
+    function resetArrayIndex() {
+        $("#search-input-settings-container tr[data-index]").each(function (i) {
+            var oIndex = $(this).attr("data-index");
+            var oNamePrefix = "SearchInputSettings[" + oIndex + "]";
+            $(this).find("[name^='" + oNamePrefix + "']").each(function () {
+                var oName = $(this).attr("name");
+                $(this).attr("name", oName.replace(oNamePrefix, "SearchInputSettings[" + i + "]"));
+            });
+            $(this).attr("data-index", i);
+        });
+        $("#list-column-settings-container tr[data-index]").each(function (i) {
+            var oIndex = $(this).attr("data-index");
+            var oNamePrefix = "ListColumnSettings[" + oIndex + "]";
+            $(this).find("[name^='" + oNamePrefix + "']").each(function () {
+                var oName = $(this).attr("name");
+                $(this).attr("name", oName.replace(oNamePrefix, "ListColumnSettings[" + i + "]"));
+            });
+            $(this).attr("data-index", i);
+        });
+    }
+
+    function overrideSetRequestAsync(request) {
+        var index;
+        $("#search-input-settings-container").empty();
+        $("#list-column-settings-container").empty();
+        var promise = Promise.resolve();
+        index = 0;
+        while (request.some(function (x) { return x.name.indexOf("SearchInputSettings[" + index + "]") == 0 })) {
+            promise = promise.then(function () {
+                return addSearchInputSettings();
+            });
+            index++;
+        }
+        index = 0;
+        while (request.some(function (x) { return x.name.indexOf("ListColumnSettings[" + index + "]") == 0 })) {
+            promise = promise.then(function () {
+                return addListColumnSettings();
+            });
+            index++;
+        }
+        // 更新 btn-group-toggle 的 active
+        promise.then(function () {
+            defaultSetRequestAsync(request);
+            $(".btn-group-toggle input:checked").click();
+        });
+    }
+</script>

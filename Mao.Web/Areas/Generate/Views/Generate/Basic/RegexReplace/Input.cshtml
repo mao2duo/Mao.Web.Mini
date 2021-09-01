@@ -1,0 +1,48 @@
+﻿@{
+    Layout = "~/Areas/Generate/Views/Generate/Input.cshtml";
+}
+
+<div class="row j-regex-replace-container">
+    <div class="col-md-12 form-group">
+        <label>待處理資料</label>
+        <textarea class="form-control" name="InputData" rows="10"></textarea>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>解析參數的正規表達式</label>
+        <input type="text" class="form-control" name="InputRegular" />
+    </div>
+</div>
+
+@section buttons {
+    <button type="button" class="btn btn-primary" onclick="regexMatch()">解析</button>
+    <button type="button" class="btn btn-primary" id="btn-submit-input" onclick="submitInput()" disabled>送出</button>
+}
+
+<script id="template-regex-capture-format" type="x-tmpl-mustache">
+    <div class="col-md-12 form-group j-regex-capture-format">
+        <label>第 {{index}} 個項目的的輸出格式</label>
+        <input type="text" class="form-control" name="RegexCaptureFormats" data-index="{{index}}" />
+    </div>
+</script>
+
+<script type="text/javascript">
+    $(function () {
+
+    });
+
+    //var isMatched = false;
+    function regexMatch() {
+        $(".j-regex-capture-format").remove();
+        var template = document.getElementById(templateId).innerHTML;
+        for (var i = 0; i < 10; i++) {
+            $(".j-regex-replace-container").append(Mustache.render(template, {
+                index = i
+            }));
+        }
+        $("[name='RegexCaptureFormats']").each(function (i, e) {
+            $(e).val("{" + $(e).attr("data-index") + "}");
+        });
+        $("#btn-submit-input").prop("disabled", false);
+        //isMatched = true;
+    }
+</script>

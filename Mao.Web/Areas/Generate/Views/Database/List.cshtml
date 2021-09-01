@@ -1,0 +1,78 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3 h2">
+        資料庫列表
+    </div>
+    <div class="col-md-12 mb-3">
+        <a class="btn btn-success" href="@Url.Action("Add", "Database")">新增</a>
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="table-responsive">
+            <table id="table-database"></table>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $("#table-database").bootstrapTable($.extend(true, {}, UI.component.bootstrapTable.defaultOptions, {
+            ajax: function (request) {
+                API.database.list({
+                }).then(function (response) {
+                    request.success(response.List);
+                });
+            },
+            columns: [
+                {
+                    width: 50,
+                    align: "center",
+                    formatter: UI.component.bootstrapTable.rowNumberFormatter
+                }, {
+                    title: "<span>資料庫名稱</span>",
+                    field: "Name",
+                    formatter: nameFormatter
+                }, {
+                    title: "<span>描述</span>",
+                    field: "Description",
+                }, {
+                    width: 150,
+                    align: "center",
+                    formatter: buttonsFormatter,
+                },
+            ],
+        }));
+    });
+
+    function nameFormatter(value, row, index, field) {
+        var $link = $("<a>" + htmlEncode(value) + "</a>");
+        $link.attr("href", "@Url.Action("List", "DatabaseTable")?DatabaseId=" + row.Id);
+        return $link[0].outerHTML;
+    }
+    function buttonsFormatter(value, row, index, field) {
+        var buttons = $("<div></div>");
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-edit\"></span></a>")
+                .attr("href", "javascript: updateDatabase(" + JSON.stringify(row.Id) + ");"));
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-trash-alt\"></span></a>")
+                .attr("href", "javascript: deleteDatabase(" + JSON.stringify(row.Id) + ");"));
+        return buttons.html();
+    }
+
+    function updateDatabase(id) {
+        location.href = "@Url.Action("Update", "Database")" + "?" + "id=" + id;
+    }
+    function deleteDatabase(id) {
+        UI.confirm("確定要刪除資料庫嗎", "刪除資料庫確認")
+            .then(function (isConfirmed) {
+                if (isConfirmed) {
+                    return API.database.delete({
+                        Id: id,
+                    });
+                }
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    UI.notice("刪除成功", "success");
+                    $("#table-database").bootstrapTable("refresh");
+                }
+            });
+    }
+</script>

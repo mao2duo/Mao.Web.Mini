@@ -1,0 +1,221 @@
+﻿@using Mao.Web.Database.Models;
+@using System.Security.Claims;
+@{
+    ICollection<AppMenu> menus = ViewBag.Menus;
+    Guid menuId = Request.QueryString.Get("menuId").ToGuid();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - 我的 ASP.NET 應用程式</title>
+    @Styles.Render("~/lib/css")
+    @Scripts.Render("~/lib/js")
+    @* 讓 IE 可以使用 Promise *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.min.js"></script>
+    @* 用來設定給 site.secondary.js 的參數 *@
+    <script type="text/javascript">
+        var APP = {
+            settings: {
+                language: "zh-TW",
+                userToken: @Html.Raw(Json.Encode((User.Identity as ClaimsIdentity).FindFirst($"{ClaimTypes.UserData}/token")?.Value)),
+                apiBaseUrl: @Html.Raw(Json.Encode(Url.Content("~/"))),
+                webBaseUrl: @Html.Raw(Json.Encode(Url.Content("~/"))),
+                loginUrl: @Html.Raw(Json.Encode(Url.Action("Login", "User", new { Area = "" }))),
+                razorHelperUrl: @Html.Raw(Json.Encode(Url.Action("RazorHepler", "Home", new { Area = "" }))),
+                fileDownloadUrl: @Html.Raw(Json.Encode(Url.Action("Download", "File", new { Area = "" }))),
+                layoutPathCiphertext: @Html.Raw(Json.Encode(Html.Encrypt(this.VirtualPath))),
+                viewPathCiphertext: @Html.Raw(Json.Encode(Html.Encrypt((this.ViewContext.View as RazorView)?.ViewPath))),
+            },
+        };
+    </script>
+    <script src="~/lib/site.secondary.js"></script>
+    <script>
+        $(function () {
+            @if (ViewBag.NoticeMessage != null)
+            {
+                @:UI.notice(@Html.Raw(Json.Encode(ViewBag.NoticeMessage)), @Html.Raw(Json.Encode(ViewBag.NoticeStyle ?? "danger")));
+            }
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</head>
+<body style="padding-top: 3.9rem;">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-light">
+        <a class="navbar-brand" href="@Url.Action("Index", "Home", new { Area = "" })">線上開發工具</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Generate", new { Area = "Generate" })">文字範本</a>
+                </li>
+                @*<li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Print", new { Area = "Print" })">程式歷程</a>
+                </li>*@
+                @*<li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:;" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="@Url.Action("", "")">
+                        </a>
+                    </div>
+                </li>*@
+            </ul>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <span class="navbar-text mt-2 mt-lg-0" style="font-weight: bold;">
+                    @User.Identity.Name
+                </span>
+            }
+            <ul class="navbar-nav mt-2 mt-lg-0">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Logout", "User", new { Area = "" })">登出</a>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Login", "User", new { Area = "" })">登入</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Register", "User", new { Area = "" })">註冊</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </nav>
+    <div class="position-fixed px-3 pb-3" style="width: 240px; height: calc(100vh - 3.9rem); overflow: auto;">
+        @RenderMenus(menus, menuId)
+        @helper RenderMenus(ICollection<AppMenu> menus, Guid menuId)
+        {
+            if (menus != null && menus.Any())
+            {
+                foreach (var menu in menus)
+                {
+                    @RenderMenu(menu, menuId)
+                }
+            }
+        }
+        @helper RenderMenu(AppMenu menu, Guid menuId)
+        {
+            if (menu.IsLink)
+            {
+                <div>
+                    @if (menuId == menu.Id)
+                    {
+                        // 已點選的選單
+                        <div class="text-white bg-dark">
+                            <i class="fas fa-link"></i>
+                            @Html.MenuInnerHtml(menu)
+                        </div>
+                    }
+                    else if (string.IsNullOrEmpty(menu.Target))
+                    {
+                        // 選單連結
+                        <a href="@Url.MenuUrl(menu)" class="text-info">
+                            <i class="fas fa-link"></i>
+                            @Html.MenuInnerHtml(menu)
+                        </a>
+                    }
+                    else
+                    {
+                        // 選單連結
+                        <a href="@Url.MenuUrl(menu)" target="@menu.Target" class="text-info">
+                            <i class="fas fa-link"></i>
+                            @Html.MenuInnerHtml(menu)
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                Guid guid = Guid.NewGuid();
+                <div class="h5 my-2">
+                    @* 展開子選單的連結 *@
+                    <a href="javascript: menuToggle('@guid');" class="text-primary menu-link" data-id="@guid">
+                        <i class="fas fa-chevron-circle-down"></i>
+                        @Html.MenuInnerHtml(menu)
+                    </a>
+                </div>
+                <div class="pl-4 menu-container" data-id="@guid">
+                    @* 子選單 *@
+                    @RenderMenus(menu.Children, menuId)
+                </div>
+            }
+        }
+    </div>
+    <div class="container-fluid" style="padding-left: 240px;">
+        @RenderBody()
+    </div>
+    @* 確認對話框 *@
+    <div class="ui-confirm w-100 vh-100" style="position: fixed; top: 0; left: 0; background-color: black; opacity: 0.9; display: none; z-index: 1060;">
+        <div class="d-flex align-items-center justify-content-center h-100">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title ui-confirm-title-container ui-confirm-title"></h5>
+                    <p class="card-text ui-confirm-message"></p>
+                    <button type="button" class="btn btn-primary ui-confirm-ok">確認</button>
+                    <button type="button" class="btn btn-secondary ui-confirm-cancel">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* 畫面遮罩 *@
+    <div class="ui-block w-100 vh-100" style="position: fixed; top: 0; left: 0; background-color: #FFF; opacity: 0.8; display: none; z-index: 1070;">
+        <div class="d-flex align-items-center justify-content-center h-100">
+            <div class="spinner-border text-secondary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+    @* 提示訊息對話框 *@
+    <div class="ui-alert w-100 vh-100" style="position: fixed; top: 0; left: 0; background-color: black; opacity: 0.9; display: none; z-index: 1080;">
+        <div class="d-flex align-items-center justify-content-center h-100">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title ui-alert-title-container ui-alert-title"></h5>
+                    <p class="card-text ui-alert-message"></p>
+                    <button type="button" class="btn btn-primary ui-alert-ok">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* 通知訊息 *@
+    <div aria-live="polite" aria-atomic="true">
+        <div class="ui-notices" style="position: fixed; top: 75px; right: 0; z-index: 1090;">
+            @helper RenderNotice(string message, string style = "danger")
+            {
+                <div class="toast mb-3 mr-4" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-body p-0">
+                        <div class="alert alert-@style mb-0" role="alert" style="min-width: 300px; font-size: x-large">
+                            @message
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <script type="text/javascript">
+        /** 展開子選單 */
+        function menuToggle(guid) {
+            var $link = $(".menu-link[data-id='" + guid + "']");
+            var $container = $(".menu-container[data-id='" + guid + "']");
+            if ($container.is(":visible")) {
+                $link.find("[data-prefix='fas']").removeClass("fa-chevron-circle-down").addClass("fa-chevron-circle-right");
+                $container.slideUp();
+            }
+            else {
+                $link.find("[data-prefix='fas']").removeClass("fa-chevron-circle-right").addClass("fa-chevron-circle-down");
+                $container.slideDown();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+﻿<style type="text/css">
+    .form-container > form > .row {
+        min-width: 200px;
+        max-width: 450px;
+    }
+</style>
+
+<div class="d-flex justify-content-center align-items-center form-container" style="height: calc(100vh - 3.9rem); padding-bottom: 3.9rem; padding-right: 240px;">
+    <form method="post">
+        <div class="row">
+            <div class="col-md-12 form-group">
+                <h2>會員登入</h2>
+            </div>
+            <div class="col-md-12 form-group">
+                <label>帳號</label>
+                <input type="text" class="form-control" name="Account" placeholder="帳號">
+            </div>
+            <div class="col-md-12 form-group">
+                <label>密碼</label>
+                <input type="password" class="form-control" name="Password" placeholder="密碼">
+            </div>
+            <div class="col-md-12 form-group">
+                <button type="submit" class="btn btn-primary" onclick="UI.block();">登入</button>
+                <a class="btn btn-success" href="@Url.Action("Register", "User")">註冊</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        if ($(".form-container").height() < $(".form-container > form > .row").height()) {
+            $(".form-container").css({ "height": "100%" });
+            $(".form-container").css({ "padding-bottom": "inherit" });
+        }
+    });
+</script>

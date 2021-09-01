@@ -1,0 +1,36 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3">
+        <h2>新增資料庫</h2>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>名稱</label>
+        <input type="text" class="form-control" id="Name" autocomplete="off" />
+    </div>
+    <div class="col-md-12 form-group">
+        <label>描述</label>
+        <input type="text" class="form-control" id="Description" autocomplete="off" />
+    </div>
+    <div class="col-12">
+        <a class="btn btn-primary" href="javascript: addDatabase()">儲存</a>
+        <a class="btn btn-secondary" href="@Url.Action("List", "Database")">取消</a>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+
+    });
+
+    function addDatabase() {
+        API.database.create({
+            Database: {
+                Name: $("#Name").val(),
+                Description: $("#Description").val(),
+            }
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                UI.noticeEnqueue("新增資料庫完成", "success");
+                location.href = "@Url.Action("List", "Database")";
+            }
+        });
+    }
+</script>

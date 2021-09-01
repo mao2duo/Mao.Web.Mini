@@ -1,0 +1,66 @@
+﻿<style type="text/css">
+    .form-container > .row {
+        min-width: 200px;
+        max-width: 450px;
+    }
+</style>
+
+<div class="d-flex justify-content-center align-items-center form-container" style="height: calc(100vh - 3.9rem); padding-bottom: 3.9rem; padding-right: 240px;">
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <h2>會員註冊</h2>
+        </div>
+        <div class="col-md-12 form-group">
+            <label>帳號</label>
+            <input type="text" class="form-control" id="Account" autocomplete="off" />
+        </div>
+        <div class="col-md-12 form-group">
+            <label>密碼</label>
+            <input type="password" class="form-control" id="Password" />
+        </div>
+        <div class="col-md-12 form-group">
+            <label>密碼確認</label>
+            <input type="password" class="form-control" id="PasswordConfirm" />
+        </div>
+        <div class="col-md-12 form-group">
+            <label>姓名</label>
+            <input type="text" class="form-control" id="DisplayName" autocomplete="off" />
+        </div>
+        <div class="col-md-12 form-group">
+            <label>Email</label>
+            <input type="text" class="form-control" id="Email" autocomplete="off" />
+        </div>
+        <div class="col-md-12 form-group">
+            <a class="btn btn-primary" href="javascript: register()">送出</a>
+            <a class="btn btn-secondary" href="@Url.Action("Index", "Home")">取消</a>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $(window).on("resize", function () {
+            if ($(".form-container").height() < $(".form-container > .row").height()) {
+                $(".form-container").css({ "height": "100%" });
+                $(".form-container").css({ "padding-bottom": "inherit" });
+            }
+        });
+        $(window).trigger("resize");
+    });
+    function register() {
+        API.user.register({
+            Account: $("#Account").val(),
+            Password: $("#Password").val(),
+            PasswordConfirm: $("#PasswordConfirm").val(),
+            DisplayName: $("#DisplayName").val(),
+            Email: $("#Email").val(),
+        }).then(function (response) {
+            UI.noticeEnqueue("註冊成功", "success");
+            location.href = "@Url.Action("Login", "User")";
+        }).catch(function () {
+            setTimeout(function () {
+                $(window).trigger("resize");
+            }, 0);
+        });
+    }
+</script>

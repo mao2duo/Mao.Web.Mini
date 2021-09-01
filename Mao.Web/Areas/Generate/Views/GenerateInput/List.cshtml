@@ -1,0 +1,84 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3 h2">
+        文字範本參數列表
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="table-responsive">
+            <table id="table-input"></table>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $("#table-input").bootstrapTable($.extend(true, {}, UI.component.bootstrapTable.defaultOptions, {
+            ajax: function (request) {
+                API.generateInput.list({
+                }).then(function (response) {
+                    request.success(response.List);
+                });
+            },
+            columns: [
+                {
+                    width: 50,
+                    align: "center",
+                    formatter: UI.component.bootstrapTable.rowNumberFormatter
+                }, {
+                    title: "<span>框架</span>",
+                    field: "Provider",
+                }, {
+                    title: "<span>功能</span>",
+                    field: "Module",
+                }, {
+                    title: "<span>名稱</span>",
+                    field: "Name",
+                }, {
+                    title: "<span>描述</span>",
+                    field: "Description",
+                }, {
+                    width: 180,
+                    align: "center",
+                    formatter: buttonsFormatter,
+                },
+            ],
+        }));
+    });
+
+    function buttonsFormatter(value, row, index, field) {
+        var buttons = $("<div></div>");
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><i class=\"fas fa-envelope-open-text\"></i></a>")
+                .attr("href", "javascript: openGenerateInput(" + JSON.stringify(row.Id) + ", " + JSON.stringify(row.Provider) + ", " + JSON.stringify(row.Module) + ");"));
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-edit\"></span></a>")
+                .attr("href", "javascript: updateGenerateInput(" + JSON.stringify(row.Id) + ");"));
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-trash-alt\"></span></a>")
+                .attr("href", "javascript: deleteGenerateInput(" + JSON.stringify(row.Id) + ");"));
+        return buttons.html();
+    }
+
+    function openGenerateInput(id, provider, module) {
+        location.href = "@Url.Action("Input", "Generate")"
+            + "?" + "Module=" + encodeURIComponent(module)
+            + "&" + "Provider=" + encodeURIComponent(provider)
+            + "&" + "GenerateInputId=" + encodeURIComponent(id);
+    }
+    function updateGenerateInput(id) {
+        location.href = "@Url.Action("Edit", "GenerateInput")" + "?" + "Id=" + encodeURIComponent(id);
+    }
+    function deleteGenerateInput(id) {
+        UI.confirm("確定要刪除文字範本參數嗎", "刪除文字範本參數確認")
+            .then(function (isConfirmed) {
+                if (isConfirmed) {
+                    return API.generateInput.delete({
+                        Id: id
+                    });
+                }
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    UI.notice("刪除文字範本參數成功", "success");
+                    $("#table-input").bootstrapTable("refresh");
+                }
+            });
+    }
+</script>

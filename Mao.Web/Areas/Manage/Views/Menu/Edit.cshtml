@@ -1,0 +1,212 @@
+﻿@using Mao.Web.Database.Models;
+<div class="row">
+    <div class="col-md-12 mt-3 mb-3">
+        <div class="h2 div-title"></div>
+    </div>
+    <div class="col-md-3 form-group">
+        <label>名稱</label>
+        <input type="text" class="form-control" id="Name" autocomplete="off" />
+    </div>
+    <div class="col-md-3 form-group">
+        <label>排序</label>
+        <input type="text" class="form-control" id="Sort" autocomplete="off" />
+    </div>
+    <div class="col-md-3 form-group">
+        <label>圖示</label>
+        <input type="text" class="form-control" id="Icon" autocomplete="off" />
+    </div>
+    <div class="col-md-3 form-group">
+        <label>顯示文字</label>
+        <input type="text" class="form-control" id="Text" autocomplete="off" />
+    </div>
+    <div class="col-md-2 form-group">
+        <label>啟用</label>
+        <div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary active">
+                    <input type="radio" name="IsActivated" value="True" autocomplete="off" checked> 是
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="IsActivated" value="False" autocomplete="off"> 否
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 form-group">
+        <label>是否為連結</label>
+        <div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary active">
+                    <input type="radio" name="IsLink" value="True" autocomplete="off" checked> 是
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="IsLink" value="False" autocomplete="off"> 否
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 form-group">
+        <label>開啟目標</label>
+        <select class="form-control" id="Target">
+            <option value=""></option>
+            <option value="_blank">_blank</option>
+            <option value="_self">_self</option>
+            <option value="_parent">_parent</option>
+            <option value="_top">_top</option>
+        </select>
+    </div>
+    <div class="col-md-6 form-group">
+        <label>連結</label>
+        <input type="text" class="form-control" id="Href" autocomplete="off" />
+    </div>
+    <div class="col-md-6 form-group">
+        <label>參數</label>
+        <table class="table table-sm">
+            <thead class="table-primary">
+                <tr>
+                    <th style="width: 45%; vertical-align: middle;">名稱</th>
+                    <th style="width: 45%; vertical-align: middle;">值</th>
+                    <th style="width: 10%;"><button type="button" class="btn btn-success btn-sm" onclick="addRoute();"><i class="fas fa-plus"></i></button></th>
+                </tr>
+            </thead>
+            <tbody class="tbody-menu-routes">
+                @helper RenderRoutes(IEnumerable<AppMenuRoute> routes)
+                {
+                    if (routes != null && routes.Any())
+                    {
+                        foreach (var route in routes)
+                        {
+                            @RenderRoute(route)
+                        }
+                    }
+                }
+                @helper RenderRoute(AppMenuRoute route)
+                {
+                    <tr class="tr-menu-route">
+                        <td>
+                            <input type="text" name="Routes.Name" value="@(route?.Name)" class="form-control form-control-sm" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input type="text" name="Routes.Value" value="@(route?.Value)" class="form-control form-control-sm" autocomplete="off" />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteRoute(this);"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <a class="btn btn-primary" href="javascript: saveMenu();">儲存</a>
+        <a class="btn btn-secondary" href="javascript: toMenuList();">取消</a>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        var id = getQueryString("Id");
+        if (!id) {
+            $(".div-title").text("新增選單");
+        }
+        else {
+            $(".div-title").text("更新選單");
+            API.menu.get({
+                Id: id,
+                IncludeRoutes: true
+            }).then(function (response) {
+                $("#Name").val(response.Menu.Name);
+                $("#Icon").val(response.Menu.Icon);
+                $("#Text").val(response.Menu.Text);
+                $("#Href").val(response.Menu.Href);
+                $("#Target").val(response.Menu.Target);
+                $("#Sort").val(response.Menu.Sort);
+                $("[name='IsActivated']").filter(function () {
+                    if (typeof response.Menu.IsActivated !== "undefined") {
+                        return $(this).val().toLowerCase() == response.Menu.IsActivated.toString().toLowerCase();
+                    }
+                    return $(this).val() == "";
+                }).prop("checked", true);
+                $("[name='IsLink']").filter(function () {
+                    if (typeof response.Menu.IsLink !== "undefined") {
+                        return $(this).val().toLowerCase() == response.Menu.IsLink.toString().toLowerCase();
+                    }
+                    return $(this).val() == "";
+                }).prop("checked", true);
+                // 更新 btn-group-toggle 的 active
+                $(".btn-group-toggle input:checked").click();
+                return UI.render.razorHelper("", "RenderRoutes", response.Menu.Routes);
+            }).then(function (rendered) {
+                $(".tbody-menu-routes").append(rendered);
+            });
+        }
+    });
+
+    function addRoute() {
+        UI.render.razorHelper("", "RenderRoute", {})
+            .then(function (rendered) {
+                $(".tbody-menu-routes").append(rendered);
+            });
+    }
+    function deleteRoute(elem) {
+        $(elem).closest(".tr-menu-route").remove();
+    }
+
+    function saveMenu() {
+        var id = getQueryString("Id");
+        var routes = [];
+        $(".tr-menu-route").each(function () {
+            routes.push({
+                Name: $(this).find("[name='Routes.Name']").val(),
+                Value: $(this).find("[name='Routes.Value']").val()
+            });
+        });
+        if (!id) {
+            API.menu.create({
+                Menu: {
+                    ParentId: getQueryString("ParentId"),
+                    Name: $("#Name").val(),
+                    Icon: $("#Icon").val(),
+                    Text: $("#Text").val(),
+                    IsLink: $("[name='IsLink']:checked").val(),
+                    Href: $("#Href").val(),
+                    Target: $("#Target").val(),
+                    Sort: $("#Sort").val(),
+                    IsActivated: $("[name='IsActivated']:checked").val(),
+                    Routes: routes
+                }
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    UI.noticeEnqueue("新增選單完成", "success");
+                    toMenuList();
+                }
+            });
+        }
+        else {
+            API.menu.update({
+                Menu: {
+                    Id: getQueryString("Id"),
+                    ParentId: getQueryString("ParentId"),
+                    Name: $("#Name").val(),
+                    Icon: $("#Icon").val(),
+                    Text: $("#Text").val(),
+                    Href: $("#Href").val(),
+                    Target: $("#Target").val(),
+                    Sort: $("#Sort").val(),
+                    IsActivated: $("[name='IsActivated']:checked").val(),
+                    Routes: routes
+                }
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    UI.noticeEnqueue("更新選單完成", "success");
+                    toMenuList();
+                }
+            });
+        }
+    }
+    function toMenuList() {
+        location.href = "@Url.Action("List", "Menu")"
+            + "?" + "ParentId=" + encodeURIComponent(getQueryString("ParentId"));
+    }
+</script>

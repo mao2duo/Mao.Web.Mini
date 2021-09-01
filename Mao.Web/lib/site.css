@@ -1,0 +1,10 @@
+﻿.w-15rem {
+    width: 15rem;
+}
+
+.tab-content-bordered {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+}

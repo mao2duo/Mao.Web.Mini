@@ -1,0 +1,18 @@
+﻿@using SqlKata
+@{
+    // 如果目標資料庫不是 SqlServer 則換成 SqlKata 提供的對應 Compiler 類型即可
+    var compiler = new SqlKata.Compilers.SqlServerCompiler();
+
+    // 在這裡修改 Query 再從頁面結果查看產出的 SQL 語法
+    var query = new Query()
+        .From("User AS u")
+        .Join("Role AS r", "r.UserId", "u.Id")
+        .Where("u.Account", "Admin");
+}
+@* ========== 以下通常不需要異動 ========== *@
+@{
+    var result = compiler.Compile(query);
+}
+@Html.Raw(Json.Encode(result.NamedBindings))
+<br />
+<div style="white-space: pre-wrap">@result.Sql</div>

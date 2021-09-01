@@ -1,0 +1,365 @@
+﻿@{
+    Layout = "~/Areas/Generate/Views/Generate/Input.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12 form-group">
+        <label>專案名稱</label>
+        <input type="text" class="form-control" name="ProjectName" />
+    </div>
+    <div class="col-md-12 form-group">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="h4">資料表</div>
+                            </div>
+                            <div>
+                                <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("List", "Database")" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    管理資料庫
+                                </a>
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="saveDatabaseTable();">儲存</button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="loadDatabaseTable();">載入</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-4 form-group">
+                        <label>資料表名稱</label>
+                        <input type="text" class="form-control" name="TableName" />
+                    </div>
+                    <div class="col-md-6 col-lg-4 form-group">
+                        <label>資料表簡化名稱</label>
+                        <input type="text" class="form-control" name="TableAlias" />
+                    </div>
+                    <div class="col-md-6 col-lg-4 form-group">
+                        <label>資料表中文名稱</label>
+                        <input type="text" class="form-control" name="TableDescription" />
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <label>資料表欄位</label>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setSqlColumnsSerialize();">編輯欄位序列化結果</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="table-sql-column"></table>
+                        </div>
+                        <input type="hidden" name="TableColumnsJson" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>範本設定</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="AddAndUpdateView" id="AddAndUpdateView-Same" value="Same" checked>
+                <label class="form-check-label" for="AddAndUpdateView-Same">
+                    新增與修改使用同一個 View
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="AddAndUpdateView" id="AddAndUpdateView-Different" value="Different">
+                <label class="form-check-label" for="AddAndUpdateView-Different">
+                    新增與修改使用不同的 View
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>輸入框設定</label>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="table-primary">
+                    <tr>
+                        <th>資料行名稱</th>
+                        <th>列表頁面狀態</th>
+                        <th>新增頁面狀態</th>
+                        <th>修改頁面狀態</th>
+                        <th>元件</th>
+                        <th>資料檢查</th>
+                    </tr>
+                </thead>
+                <tbody id="generate-settings-container">
+                    @helper RenderDatabaseTableColumnsGenerateSettings(IEnumerable<DatabaseTableColumn> databaseTableColumns)
+                    {
+                        Guid guid;
+                        if (databaseTableColumns != null)
+                        {
+                            int rowIndex = 0;
+                            foreach (var databaseTableColumn in databaseTableColumns)
+                            {
+                                string indexedName = $"TableColumnGenerateSettings[{rowIndex}]";
+                                <tr>
+                                    <td>
+                                        @databaseTableColumn.ColumnName
+                                        <input type="hidden" name="@(indexedName).ColumnName" value="@databaseTableColumn.ColumnName" />
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="checkbox" name="@(indexedName).OnList.Features" id="@guid" value="SearchFilter">
+                                            <label class="form-check-label" for="@guid">
+                                                搜尋條件
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="checkbox" name="@(indexedName).OnList.Features" id="@guid" value="TableColumn" checked>
+                                            <label class="form-check-label" for="@guid">
+                                                表格欄位
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnCreate.InputStatus" id="@guid" value="none">
+                                            <label class="form-check-label" for="@guid">
+                                                無輸入框
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnCreate.InputStatus" id="@guid" value="hidden">
+                                            <label class="form-check-label" for="@guid">
+                                                隱藏欄位 (hidden)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnCreate.InputStatus" id="@guid" value="readonly" checked="@(databaseTableColumn.IsIdentity || databaseTableColumn.IsComputed)">
+                                            <label class="form-check-label" for="@guid">
+                                                唯讀
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnCreate.InputStatus" id="@guid" value="editable" disabled="@(databaseTableColumn.IsIdentity || databaseTableColumn.IsComputed)" checked="@(!(databaseTableColumn.IsIdentity || databaseTableColumn.IsComputed))">
+                                            <label class="form-check-label" for="@guid">
+                                                可編輯
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnUpdate.InputStatus" id="@guid" value="none">
+                                            <label class="form-check-label" for="@guid">
+                                                無輸入框
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnUpdate.InputStatus" id="@guid" value="hidden">
+                                            <label class="form-check-label" for="@guid">
+                                                隱藏欄位 (hidden)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnUpdate.InputStatus" id="@guid" value="readonly" checked="@(databaseTableColumn.IsPrimaryKey || databaseTableColumn.IsIdentity || databaseTableColumn.IsComputed)">
+                                            <label class="form-check-label" for="@guid">
+                                                唯讀
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).OnUpdate.InputStatus" id="@guid" value="editable" disabled="@(databaseTableColumn.IsPrimaryKey || databaseTableColumn.IsIdentity || databaseTableColumn.IsComputed)" checked="@(!(databaseTableColumn.IsPrimaryKey || databaseTableColumn.IsIdentity || databaseTableColumn.IsComputed))">
+                                            <label class="form-check-label" for="@guid">
+                                                可編輯
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).InputType" id="@guid" value="text" checked>
+                                            <label class="form-check-label" for="@guid">
+                                                文字輸入框
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).InputType" id="@guid" value="textarea">
+                                            <label class="form-check-label" for="@guid">
+                                                文字輸入框 (多行)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).InputType" id="@guid" value="ckeditor">
+                                            <label class="form-check-label" for="@guid">
+                                                文字輸入框 (HTML)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).InputType" id="@guid" value="select">
+                                            <label class="form-check-label" for="@guid">
+                                                下拉選單
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).InputType" id="@guid" value="radio">
+                                            <label class="form-check-label" for="@guid">
+                                                核選框 (單選)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="radio" name="@(indexedName).InputType" id="@guid" value="checkbox">
+                                            <label class="form-check-label" for="@guid">
+                                                核選框 (多選)
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="checkbox" name="@(indexedName).Validation" id="@guid" value="required">
+                                            <label class="form-check-label" for="@guid">
+                                                必填
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="checkbox" name="@(indexedName).Validation" id="@guid" value="int">
+                                            <label class="form-check-label" for="@guid">
+                                                整數
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            @{ guid = Guid.NewGuid(); }
+                                            <input class="form-check-input" type="checkbox" name="@(indexedName).Validation" id="@guid" value="decimal">
+                                            <label class="form-check-label" for="@guid">
+                                                小數
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                rowIndex++;
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Areas/Generate/Views/Shared/Partials/DatabaseTablePicker.cshtml")
+@Html.Partial("~/Areas/Generate/Views/Shared/Partials/SqlColumnsSerializeEditor.cshtml")
+
+<script type="text/javascript">
+    $(function () {
+        // 資料表欄位
+        $("#table-sql-column").bootstrapTable($.extend(true, {}, UI.component.bootstrapTable.defaultOptions, {
+            pagination: false,
+            classes: "table table-bordered table-striped table-sm",
+            columns: [
+                {
+                    title: "<div class='text-center'>主鍵</div>",
+                    field: "IsPrimaryKey",
+                    formatter: UI.component.bootstrapTable.booleanFormatter
+                }, {
+                    title: "<span>資料行名稱</span>",
+                    field: "ColumnName",
+                }, {
+                    title: "<span>資料類型</span>",
+                    field: "TypeFullName",
+                }, {
+                    title: "<div class='text-center'>允許 NULL</div>",
+                    field: "IsNullable",
+                    formatter: UI.component.bootstrapTable.booleanFormatter
+                }, {
+                    title: "<span>預設值</span>",
+                    field: "DefaultDefine",
+                    formatter: UI.component.bootstrapTable.htmlEncodeFormatter
+                }, {
+                    title: "<span>描述</span>",
+                    field: "Description",
+                    formatter: UI.component.bootstrapTable.prelineFormatter
+                }, {
+                    title: "<div class='text-center'>識別規格</div>",
+                    field: "IsIdentity",
+                    formatter: UI.component.bootstrapTable.booleanFormatter
+                }, {
+                    title: "<div class='text-center'>計算欄位</div>",
+                    field: "IsComputed",
+                    formatter: UI.component.bootstrapTable.booleanFormatter
+                },
+            ],
+        }));
+        $("[name='TableColumnsJson']").on("change", function () {
+            var databaseTableColumns = JSON.parse($("[name='TableColumnsJson']").val());
+            $("#table-sql-column").bootstrapTable("load", databaseTableColumns);
+            UI.render.razorHelper("", "RenderDatabaseTableColumnsGenerateSettings", databaseTableColumns)
+                .then(function (rendered) {
+                    $("#generate-settings-container").html(rendered);
+                    $("#generate-settings-container").trigger("change");
+                });
+        });
+    });
+
+    /** 編輯欄位序列化結果 */
+    function setSqlColumnsSerialize() {
+        API.databaseTableColumn.convertToSqlColumnsSerialized({
+            Columns: JSON.parse($("[name='TableColumnsJson']").val() || "[]")
+        }).then(function (response) {
+            return openSqlColumnsSerializeEditor(
+                $("[name='TableName']").val(),
+                response.Serialized
+            );
+        }).then(function (response) {
+            return API.databaseTableColumn.convertFromSqlColumnsSerialized({
+                JsonOrXml: response
+            });
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                $("[name='TableColumnsJson']").val(JSON.stringify(response.Columns));
+                $("[name='TableColumnsJson']").trigger("change");
+            }
+        });
+    }
+    /** 儲存資料表 */
+    function saveDatabaseTable() {
+        openDatabaseTablePicker("save", {
+            TableName: $("[name='TableName']").val(),
+            TableAlias: $("[name='TableAlias']").val(),
+            TableDescription: $("[name='TableDescription']").val(),
+            Columns: JSON.parse($("[name='TableColumnsJson']").val() || "[]")
+        }).then(function () {
+            UI.notice("儲存資料表完成", "success");
+        });
+    }
+    /** 載入資料表 */
+    function loadDatabaseTable() {
+        openDatabaseTablePicker("load", {
+        }).then(function (response) {
+            $("[name='TableName']").val(response.TableName);
+            $("[name='TableAlias']").val(response.TableAlias);
+            $("[name='TableDescription']").val(response.Description);
+            $("[name='TableColumnsJson']").val(JSON.stringify(response.Columns));
+            $("[name='TableColumnsJson']").trigger("change");
+        });
+    }
+
+    function overrideSetRequestAsync(request) {
+        defaultSetRequestAsync(request);
+        $("[name='TableColumnsJson']").trigger("change");
+        var afterGenerateSettings = function () {
+            defaultSetRequestAsync(request);
+            $("#generate-settings-container").off("change", afterGenerateSettings);
+        };
+        $("#generate-settings-container").on("change", afterGenerateSettings);
+    }
+</script>

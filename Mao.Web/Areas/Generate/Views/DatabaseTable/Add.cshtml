@@ -1,0 +1,48 @@
+﻿@using Mao.Web.Database.Models
+@model DatabaseTable
+<div class="row">
+    <div class="col-md-12 mt-3 mb-3">
+        <h2>新增資料表</h2>
+    </div>
+    <div class="col-md-12 form-group">
+        <label>資料表名稱</label>
+        <input type="text" class="form-control" id="TableName" autocomplete="off" />
+    </div>
+    <div class="col-md-12 form-group">
+        <label>簡化名稱</label>
+        <input type="text" class="form-control" id="TableAlias" autocomplete="off" />
+    </div>
+    <div class="col-md-12 form-group">
+        <label>中文名稱</label>
+        <input type="text" class="form-control" id="Description" autocomplete="off" />
+    </div>
+    <div class="col-12">
+        <a class="btn btn-primary" href="javascript: addDatabaseTable();">儲存</a>
+        <a class="btn btn-secondary" href="javascript: toDatabaseTableList();">取消</a>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+
+    });
+
+    function addDatabaseTable() {
+        API.databaseTable.create({
+            Table: {
+                DatabaseId: getQueryString("DatabaseId"),
+                TableName: $("#TableName").val(),
+                TableAlias: $("#TableAlias").val(),
+                Description: $("#Description").val()
+            }
+        }).then(function (response) {
+            if (response.IsSuccessed) {
+                UI.noticeEnqueue("新增資料表完成", "success");
+                toDatabaseTableList();
+            }
+        });
+    }
+
+    function toDatabaseTableList() {
+        location.href = "@Url.Action("List", "DatabaseTable")?DatabaseId=" + getQueryString("DatabaseId");
+    }
+</script>

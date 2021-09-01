@@ -1,0 +1,109 @@
+﻿@*
+    1. Html:
+        @Html.Partial("~/Areas/Generate/Views/Shared/Partials/SqlColumnsSerializeEditor.cshtml")
+    2. Javascript:
+        openSqlColumnsSerializeEditor(tableName, sqlColumnsSerialized).then(function (response) {
+            // get response.Columns
+        })
+*@
+<div id="modal-sql-columns" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">資料表欄位結構</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                JSON 或 XML 的序列化結果
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-primary btn-sm btn-solution">SQL Server 的解決方案</button>
+                            </div>
+                        </div>
+                        <textarea class="form-control" id="input-sql-columns" rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-ok">確認</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-sql-columns-solution" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">取得序列化結果的解決方案</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                將以下 SQL 語法的執行結果 (XML 或 JSON 擇一) 貼上即可
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-primary btn-sm btn-copy">複製</button>
+                            </div>
+                        </div>
+                        <textarea class="form-control" id="input-sql-columns-solution" rows="30" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openSqlColumnsSerializeEditor(tableName, sqlColumnsSerialized) {
+        function copySolution() {
+            copyToClipboard($("#input-sql-columns-solution").val())
+                .then(function () {
+                    UI.notice("已將內容複製至剪貼簿", "success");
+                }).catch(function (message) {
+                    UI.notice(message || "複製內容發生異常", "danger");
+                });
+        }
+        function openSolution() {
+            $("#modal-sql-columns").on("hidden.bs.modal", function () {
+                API.databaseTableColumn.getSerializeSqlColumnsScript({
+                    TableName: tableName,
+                    DbProvider: "SqlServer"
+                }).then(function (response) {
+                    $("#input-sql-columns-solution").val(response.Script);
+                    $("#modal-sql-columns-solution .btn-copy").off("click", copySolution);
+                    $("#modal-sql-columns-solution .btn-copy").on("click", copySolution);
+                    $("#modal-sql-columns-solution").off("hidden.bs.modal");
+                    $("#modal-sql-columns-solution").on("hidden.bs.modal", function () {
+                        $("#modal-sql-columns").off("hidden.bs.modal");
+                        $("#modal-sql-columns").modal("show");
+                    });
+                    $("#modal-sql-columns-solution").modal("show");
+                });
+            });
+            $("#modal-sql-columns").modal("hide");
+        }
+        return new Promise(function (resolve, reject) {
+            $("#input-sql-columns").val(sqlColumnsSerialized);
+            $("#modal-sql-columns .btn-solution").off("click", openSolution);
+            $("#modal-sql-columns .btn-solution").on("click", openSolution);
+            $("#modal-sql-columns .btn-ok").off("click");
+            $("#modal-sql-columns .btn-ok").on("click", function () { resolve(); });
+            $("#modal-sql-columns").modal("show");
+        }).then(function () {
+            $("#modal-sql-columns").modal("hide");
+            return Promise.resolve($("#input-sql-columns").val());
+        });
+    }
+</script>

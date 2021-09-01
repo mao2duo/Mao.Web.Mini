@@ -1,0 +1,48 @@
+﻿@using Mao.Web.ApiActions
+@model GenerateOutputFiles.Response
+@{
+    Layout = null;
+}
+
+@RenderDirectoryItems(Model.Container)
+
+@helper RenderDirectoryItems(GenerateOutputFiles.Response.Directory directory)
+{
+    foreach (var subDirectory in directory.Directories)
+    {
+        @RenderDirectory(subDirectory)
+    }
+    foreach (var file in directory.Files)
+    {
+        @RenderFile(file)
+    }
+}
+@helper RenderDirectory(GenerateOutputFiles.Response.Directory directory)
+{
+    <div>
+        <div style="display: table-cell">
+            <i class="fas fa-folder-open text-warning mr-1"></i>
+        </div>
+        <div style="display: table-cell">
+            <div>@directory.Name</div>
+            @RenderDirectoryItems(directory)
+        </div>
+    </div>
+}
+@helper RenderFile(GenerateOutputFiles.Response.File file)
+{
+    var hashCode = file.GetHashCode();
+    <div name="file-item" data-file-id="@hashCode">
+        <div style="display: table-cell">
+            <i class="fas fa-file text-info mr-1"></i>
+        </div>
+        <div style="display: table-cell">
+            <a href="javascript: generateResponseSwitch('@hashCode');">@file.Name</a>
+        </div>
+    </div>
+    <div style="display: none;">
+        <div name="file-path" data-file-id="@hashCode">@Path.Combine(file.DirectoryPath, file.Name)</div>
+        <div name="file-desc" data-file-id="@hashCode">@file.Description</div>
+        <div name="file-content" data-file-id="@hashCode">@file.Content</div>
+    </div>
+}

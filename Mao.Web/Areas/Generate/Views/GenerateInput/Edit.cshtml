@@ -1,0 +1,61 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3 h2">
+        <div class="h2">更新文字範本參數</div>
+    </div>
+    <div class="col-md-6 form-group">
+        <label>框架</label>
+        <input type="text" class="form-control" id="Provider" readonly />
+    </div>
+    <div class="col-md-6 form-group">
+        <label>功能</label>
+        <input type="text" class="form-control" id="Module" readonly />
+    </div>
+    <div class="col-md-6 form-group">
+        <label>名稱</label>
+        <input type="text" class="form-control" id="Name" autocomplete="off" />
+    </div>
+    <div class="col-md-6 form-group">
+        <label>描述</label>
+        <input type="text" class="form-control" id="Description" autocomplete="off" />
+    </div>
+    <div class="col-md-12 form-group">
+        <label>參數內容</label>
+        <textarea class="form-control" id="Serialization" rows="20"></textarea>
+    </div>
+    <div class="col-12">
+        <a class="btn btn-primary" href="javascript: updateGenerateInput();">儲存</a>
+        <a class="btn btn-secondary" href="javascript: toGenerateInputList();">取消</a>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        API.generateInput.get({
+            Id: getQueryString("Id")
+        }).then(function (response) {
+            $("#Provider").val(response.Input.Provider);
+            $("#Module").val(response.Input.Module);
+            $("#Name").val(response.Input.Name);
+            $("#Description").val(response.Input.Description);
+            $("#Serialization").val(response.Input.Serialization);
+        });
+    });
+
+    function updateGenerateInput() {
+        API.generateInput.update({
+            Input: {
+                Id: getQueryString("Id"),
+                Name: $("#Name").val(),
+                Description: $("#Description").val(),
+                Serialization: $("#Serialization").val()
+            }
+        }).then(function (response) {
+            if (response) {
+                UI.noticeEnqueue("新增文字範本參數完成", "success");
+                toGenerateInputList();
+            }
+        });
+    }
+    function toGenerateInputList() {
+        location.href = "@Url.Action("List", "GenerateInput")";
+    }
+</script>

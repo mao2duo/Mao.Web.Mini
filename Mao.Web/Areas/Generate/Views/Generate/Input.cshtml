@@ -1,0 +1,365 @@
+﻿@{
+    Layout = "~/Areas/Generate/Views/Shared/_Layout.cshtml";
+    string provider = ViewBag.Provider;
+    string module = ViewBag.Module;
+}
+
+<style type="text/css">
+    #file-output-desc:empty {
+        display: none;
+    }
+</style>
+
+<ul class="nav nav-tabs" role="tablist" id="tab-generate-container">
+    <li class="nav-item">
+        <a class="nav-link active" id="tab-generate-request" data-toggle="tab" href="#tab-content-generate-request" role="tab" aria-controls="tab-content-generate-request" aria-selected="true">
+            輸入
+        </a>
+    </li>
+    <li class="nav-item" style="display: none;">
+        <a class="nav-link" id="tab-generate-response" data-toggle="tab" href="#tab-content-generate-response" role="tab" aria-controls="tab-content-generate-response" aria-selected="false">
+            輸出
+        </a>
+    </li>
+</ul>
+<div class="tab-content tab-content-bordered" id="tab-content-generate-container">
+    @* 輸入 *@
+    <div class="tab-pane fade show active" id="tab-content-generate-request" role="tabpanel" aria-labelledby="tab-generate-request">
+        <form id="form-input">
+            <div class="row">
+                <div class="col-12">
+                    @RenderBody()
+                </div>
+                <div class="col-12">
+                    @if (IsSectionDefined("buttons"))
+                    {
+                        @RenderSection("buttons", required: false)
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-primary" onclick="submitInput()">送出</button>
+                        <button type="button" class="btn btn-success" onclick="saveInputOpen()">儲存</button>
+                        <button type="button" class="btn btn-warning" onclick="loadInputOpen()">載入</button>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+    @* 輸出 *@
+    <div class="tab-pane fade" id="tab-content-generate-response" role="tabpanel" aria-labelledby="tab-generate-response">
+        <div class="row">
+            <div class="col-12 col-md-4 col-xl-3 order-md-2 pl-md-0">
+                <div id="generate-output-head" class="d-flex justify-content-end">
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="downloadZip();">下載</button>
+                    </div>
+                </div>
+                <div id="generate-output" class="pl-1" style="overflow: auto; border: 1px solid gray">
+                </div>
+            </div>
+            <div class="col-12 col-md-8 col-xl-9 order-md-1 pr-md-0">
+                <div class="d-lg-flex justify-content-lg-between" id="file-output-content-head">
+                    <div id="file-output-path"></div>
+                    <div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="compareAsBase();">作為比對對象</button>
+                        <button type="button" class="btn btn-info btn-sm" onclick="compareWithBase();">進行比對</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="copyFileOutputContent();">複製</button>
+                    </div>
+                </div>
+                <textarea id="file-output-content" class="form-control" style="white-space: pre; min-height: 360px; resize: none;" readonly></textarea>
+                <div id="file-output-desc" class="alert alert-warning" style="white-space: pre-line; margin-bottom: 0;" role="alert"></div>
+            </div>
+        </div>
+    </div>
+    @* 用來比對文字的 form *@
+    <form method="post" action="https://text-compare.com/" target="_blank" id="form-compare">
+        <input type="hidden" name="text1" id="hidden-compare-text1" />
+        <input type="hidden" name="text2" id="hidden-compare-text2" />
+    </form>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="modal-save-input">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">儲存文字範本參數</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <label>名稱</label>
+                        <input type="text" class="form-control" id="save-input-name" />
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>備註</label>
+                        <input type="text" class="form-control" id="save-input-description" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveInput();">確定</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="modal-load-input">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">載入文字範本參數</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @helper RenderGenerateInputs(IEnumerable<GenerateInput> generateInputs)
+                {
+                    if (generateInputs != null && generateInputs.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var generateInput in generateInputs)
+                            {
+                                <a href="javascript:;" class="list-group-item list-group-item-action" data-generate-input-id="@generateInput.Id" onclick="loadInputSelect(this);">
+                                    <div class="h5">@generateInput.Name</div>
+                                    <div>@generateInput.Description</div>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div>沒有文字範本參數可載入</div>
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="loadInput();">確定</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#tab-generate-response').on("shown.bs.tab", generateResponseResize);
+        var generateInputId = getQueryString("GenerateInputId");
+        if (generateInputId) {
+            loadInput(generateInputId);
+        }
+    });
+    /** 按下送出按鈕 */
+    function submitInput() {
+        if (typeof overrideSubmitInput == "function") {
+            overrideSubmitInput();
+        }
+        else {
+            defaultSubmitInput();
+        }
+    }
+    /** 預設送出按鈕的執行動作 */
+    function defaultSubmitInput() {
+        getRequestAsync(function (request) {
+            generate(request);
+        });
+    }
+    /** 取得給 ajax 的 request */
+    function getRequestAsync(callback) {
+        if (typeof overrideGetRequestAsync == "function") {
+            overrideGetRequestAsync(callback);
+        }
+        else {
+            defaultGetRequestAsync(callback);
+        }
+    }
+    /** 預設取得給 ajax 的 request 的方法 */
+    function defaultGetRequestAsync(callback) {
+        if (typeof callback == "function") {
+            callback($("#form-input").serializeArray());
+        }
+    }
+    /** 將 javascript 的物件設定到畫面的輸入框 */
+    function setRequestAsync(request) {
+        if (typeof overrideSetRequestAsync == "function") {
+            overrideSetRequestAsync(request);
+        }
+        else {
+            defaultSetRequestAsync(request);
+        }
+    }
+    /** 預設將 javascript 的物件設定到畫面的輸入框的方法 */
+    function defaultSetRequestAsync(request) {
+        $("#form-input").deserialize(request);
+    }
+
+    /** 呼叫 ajax 並將結果呈現在畫面 */
+    function generate(request) {
+        UI.block();
+        $.post("@Html.Raw(Url.Action("Output", "Generate", new { Area = "Generate", provider, module }))",
+            request
+        ).done(function (response) {
+            $("#tab-generate-response").closest(".nav-item").show();
+            $('#tab-generate-response').tab("show");
+            $("#generate-output").html(response);
+            var fileId = $("[data-file-id]").attr("data-file-id");
+            generateResponseSwitch(fileId);
+        }).fail(function (xhr, textStatus, errorThrown) {
+            var isErrorHandled = false;
+            if (isErrorHandled == false) {
+                isErrorHandled = UI.errorHandlings.modelStateErrorHandling(xhr, textStatus, errorThrown);
+            }
+            if (isErrorHandled == false) {
+                isErrorHandled = UI.errorHandlings.noticeErrorHandling(xhr, textStatus, errorThrown);
+            }
+        }).always(function () {
+            UI.unblock();
+        });
+    }
+    function generateResponseSwitch(fileId) {
+        // 變更選取顏色
+        $("[name='file-item'][data-file-id] a").removeClass("text-white bg-dark");
+        $("[name='file-item'][data-file-id='" + fileId + "'] a").addClass("text-white bg-dark");
+        // 切換內容
+        var $fileElements = $("[data-file-id='" + fileId + "']");
+        $("#file-output-path").text($fileElements.filter("[name='file-path']").text());
+        $("#file-output-desc").text($fileElements.filter("[name='file-desc']").text());
+        $("#file-output-content").val($fileElements.filter("[name='file-content']").text());
+        generateResponseResize();
+    }
+    function generateResponseResize() {
+        $("#generate-output").outerHeight(
+            window.innerHeight
+            - (Number($("body").css("padding-top").replace("px", ""))
+                + Number($("body").css("padding-bottom").replace("px", ""))
+                + $("#tab-generate-container").outerHeight(true)
+                + Number($("#tab-content-generate-container").css("padding-top").replace("px", ""))
+                + Number($("#tab-content-generate-container").css("padding-bottom").replace("px", ""))
+                + Number($("#tab-content-generate-container").css("border-top-width").replace("px", ""))
+                + Number($("#tab-content-generate-container").css("border-bottom-width").replace("px", ""))
+                + $("#generate-output-head").outerHeight(true)));
+        $("#file-output-content").outerHeight(
+            window.innerHeight
+            - (Number($("body").css("padding-top").replace("px", ""))
+                + Number($("body").css("padding-bottom").replace("px", ""))
+                + $("#tab-generate-container").outerHeight(true)
+                + Number($("#tab-content-generate-container").css("padding-top").replace("px", ""))
+                + Number($("#tab-content-generate-container").css("padding-bottom").replace("px", ""))
+                + Number($("#tab-content-generate-container").css("border-top-width").replace("px", ""))
+                + Number($("#tab-content-generate-container").css("border-bottom-width").replace("px", ""))
+                + $("#file-output-content-head").outerHeight(true)
+                + ($("#file-output-desc:visible").outerHeight(true) || 0)), true);
+    }
+
+    function saveInputOpen() {
+        $("#modal-save-input").modal("show");
+    }
+    function saveInput() {
+        getRequestAsync(function (request) {
+            API.generateInput.create({
+                Input: {
+                    Provider: "@provider",
+                    Module: "@module",
+                    Name: $("#save-input-name").val(),
+                    Description: $("#save-input-description").val(),
+                    Serialization: JSON.stringify(request)
+                }
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    $("#modal-save-input").modal("hide");
+                    UI.notice("儲存文字範本參數完成", "success");
+                }
+            });
+        });
+    }
+    /** 載入輸入參數 打開對話框 */
+    function loadInputOpen() {
+        API.generateInput.list({
+            Provider: "@provider",
+            Module: "@module",
+        }).then(function (response) {
+            return UI.render.razorHelper(@Html.Raw(Json.Encode(Html.Encrypt(this.VirtualPath))), "RenderGenerateInputs", response.List);
+        }).then(function (rendered) {
+            $("#modal-load-input .modal-body").html(rendered);
+            $("#modal-load-input").modal("show");
+        });
+    }
+    /** 載入輸入參數 選擇參數 */
+    function loadInputSelect(elem) {
+        $("#modal-load-input .modal-body .list-group-item.active").removeClass("active");
+        $(elem).addClass("active");
+    }
+    /** 載入輸入參數 */
+    function loadInput(id) {
+        if (arguments.length == 0) {
+            var $item = $("#modal-load-input .modal-body .list-group-item.active");
+            if ($item.length == 0) {
+                UI.notice("請選擇文字範本參數", "warning");
+                return;
+            }
+            id = $item.attr("data-generate-input-id");
+        }
+        API.generateInput.get({
+            Id: id
+        }).then(function (response) {
+            $("#modal-load-input").modal("hide");
+            var request = JSON.parse(response.Input.Serialization);
+            setRequestAsync(request);
+            UI.notice("載入文字範本參數完成", "warning");
+        });
+    }
+    /** 作為比對對象 */
+    function compareAsBase() {
+        var text1 = $("#file-output-content").val();
+        setBigCookie("generateFileOutputCompareBase", text1, 1);
+        UI.notice("已將內容作為比對對象", "success");
+    }
+    /** 進行比對 */
+    function compareWithBase(text1, text2) {
+        var text1 = getBigCookie("generateFileOutputCompareBase");
+        if (text1) {
+            var text2 = $("#file-output-content").val();
+            // submit 到文字比對的線上工具
+            $("#hidden-compare-text1").val(text1);
+            $("#hidden-compare-text2").val(text2);
+            $("#form-compare").submit();
+        }
+        else {
+            UI.notice("需要比對對象", "warning");
+        }
+    }
+    /** 複製 */
+    function copyFileOutputContent() {
+        copyToClipboard($("#file-output-content").val())
+            .then(function () {
+                UI.notice("已將內容複製至剪貼簿", "success");
+            }).catch(function (message) {
+                UI.notice(message || "複製內容發生異常", "danger");
+            });
+    }
+    /** 下載 */
+    function downloadZip() {
+        var files = [];
+        $("[name='file-item'][data-file-id]").each(function (i, e) {
+            var fileId = $(e).attr("data-file-id");
+            var $fileElements = $("[data-file-id='" + fileId + "']");
+            files.push({
+                path: $fileElements.filter("[name='file-path']").text(),
+                contentEncoded: htmlEncode($fileElements.filter("[name='file-content']").text()),
+            });
+        });
+        API.generate.zip({
+            name: "@($"{provider}-{module}.zip")",
+            files: files,
+        }).then(function (response) {
+            location.href = "@Html.Raw(Url.Action("Download", "File", new { Area = "" }))" + "?id=" + response.Id;
+        });
+    }
+</script>
+
+
+

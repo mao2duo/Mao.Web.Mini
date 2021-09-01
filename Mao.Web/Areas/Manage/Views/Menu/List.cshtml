@@ -1,0 +1,120 @@
+﻿<div class="row">
+    <div class="col-md-12 mt-3 mb-3 h2">
+        <a id="link-to-parent-menu-list" href="javascript:;" style="display: none;"><i class="fas fa-arrow-left"></i></a>
+        選單列表
+    </div>
+    <div class="col-md-12 mb-3">
+        <a class="btn btn-success" href="javascript: addMenu();">新增</a>
+    </div>
+    <div class="col-md-12 mb-3">
+        <div class="table-responsive">
+            <table id="table-menu"></table>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $("#table-menu").bootstrapTable($.extend(true, {}, UI.component.bootstrapTable.defaultOptions, {
+            ajax: function (request) {
+                API.menu.list({
+                    ParentId: getQueryString("ParentId"),
+                }).then(function (response) {
+                    request.success(response.List);
+                });
+            },
+            columns: [
+                {
+                    width: 50,
+                    align: "center",
+                    formatter: UI.component.bootstrapTable.rowNumberFormatter
+                }, {
+                    title: "<span>名稱</span>",
+                    field: "Name"
+                }, {
+                    title: "<span>圖示</span>",
+                    field: "Icon",
+                }, {
+                    title: "<span>顯示文字</span>",
+                    field: "Text",
+                }, {
+                    title: "<span>連結</span>",
+                    field: "Href",
+                }, {
+                    title: "<span>開啟目標</span>",
+                    field: "Target",
+                }, {
+                    title: "<span>排序</span>",
+                    field: "Sort",
+                }, {
+                    title: "<span>啟用</span>",
+                    field: "IsActivated",
+                    formatter: UI.component.bootstrapTable.booleanFormatter
+                }, {
+                    width: 180,
+                    align: "center",
+                    formatter: buttonsFormatter,
+                },
+            ],
+        }));
+
+        var parentId = getQueryString("ParentId");
+        if (parentId) {
+            API.menu.get({
+                Id: parentId
+            }).then(function (response) {
+                $("#link-to-parent-menu-list").show();
+                $("#link-to-parent-menu-list").on("click", function () {
+                    toParentMenuList(response.Menu.ParentId);
+                });
+            });
+        }
+    });
+
+    function buttonsFormatter(value, row, index, field) {
+        var buttons = $("<div></div>");
+        if (!row.IsLink) {
+            // 不是連結才有子選單
+            buttons.append(
+                $("<a class=\"btn btn-xs\"><span class=\"fas fa-list-ol\"></span></a>")
+                    .attr("href", "@Url.Action("List", "Menu")" + "?" + "ParentId=" + row.Id));
+        }
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-edit\"></span></a>")
+                .attr("href", "javascript: updateMenu(" + JSON.stringify(row.Id) + ");"));
+        buttons.append(
+            $("<a class=\"btn btn-xs\"><span class=\"fas fa-trash-alt\"></span></a>")
+                .attr("href", "javascript: deleteMenu(" + JSON.stringify(row.Id) + ");"));
+        return buttons.html();
+    }
+
+    function addMenu() {
+        location.href = "@Url.Action("Edit", "Menu")"
+            + "?" + "ParentId=" + encodeURIComponent(getQueryString("ParentId"));
+    }
+    function updateMenu(id) {
+        location.href = "@Url.Action("Edit", "Menu")"
+            + "?" + "Id=" + encodeURIComponent(id)
+            + "&" + "ParentId=" + encodeURIComponent(getQueryString("ParentId"));
+    }
+    function deleteMenu(id) {
+        UI.confirm("確定要刪除選單嗎", "刪除選單確認")
+            .then(function (isConfirmed) {
+                if (isConfirmed) {
+                    return API.menu.delete({
+                        Id: id
+                    });
+                }
+                return Promise.resolve({ IsSuccessed: false });
+            }).then(function (response) {
+                if (response.IsSuccessed) {
+                    UI.notice("刪除選單成功", "success");
+                    $("#table-menu").bootstrapTable("refresh");
+                }
+            });
+    }
+
+    function toParentMenuList(parentId) {
+        location.href = "@Url.Action("List", "Menu")"
+            + "?" + "ParentId=" + encodeURIComponent(parentId);
+    }
+</script>

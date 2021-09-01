@@ -1,0 +1,241 @@
+﻿@*
+    1. Html:
+        @Html.Partial("~/Areas/Generate/Views/Shared/Partials/DatabaseTablePicker.cshtml")
+    2-1. Javascript (load):
+        openDatabaseTablePicker("load", {
+        })
+    2-2. Javascript (save):
+        openDatabaseTablePicker("save", {
+        })
+*@
+@{
+    var viewPathCiphertext = Html.Encrypt(this.VirtualPath);
+}
+<div class="modal" tabindex="-1" role="dialog" id="modal-save-database-table">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">儲存資料表</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <label>資料庫</label>
+                        <select class="form-control select-database">
+                            @helper RenderSaveDatabaseOptions(IEnumerable<Database> databases)
+                            {
+                                <option value="">選擇資料庫</option>
+                                if (databases != null && databases.Any())
+                                {
+                                    foreach (var database in databases)
+                                    {
+                                        <option value="@database.Id">@database.Name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>資料表名稱</label>
+                        <input type="text" class="form-control text-table-name" />
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>簡化名稱</label>
+                        <input type="text" class="form-control text-table-alias" />
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>中文名稱</label>
+                        <input type="text" class="form-control text-table-description" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-ok">確定</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" tabindex="-1" role="dialog" id="modal-load-database-table">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">載入資料表</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 form-group">
+                        <label>資料庫</label>
+                        <select class="form-control select-database">
+                            @helper RenderLoadDatabaseOptions(IEnumerable<Database> databases)
+                            {
+                                <option value="">選擇資料庫</option>
+                                if (databases != null && databases.Any())
+                                {
+                                    foreach (var database in databases)
+                                    {
+                                        <option value="@database.Id">@database.Name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-12 form-group list-database-tables-container">
+                        @helper RenderDatabaseTableList(IEnumerable<DatabaseTable> databaseTables)
+                        {
+                            if (databaseTables != null && databaseTables.Any())
+                            {
+                                <div class="list-group">
+                                    @foreach (var databaseTable in databaseTables)
+                                    {
+                                        <a href="javascript:;" class="list-group-item list-group-item-action" data-database-id="@databaseTable.DatabaseId" data-table-name="@databaseTable.TableName">
+                                            <div class="h5">@databaseTable.TableName</div>
+                                            <div>@databaseTable.Description</div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    沒有資料表可載入
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-ok">確定</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    /**
+     * 載入或儲存 DatabaseTable
+     * @@param {"load" | "save"} action
+     * @@param {any} data
+     */
+    function openDatabaseTablePicker(action, data) {
+        return new Promise(function (resolve, reject) {
+            if (action === "load") {
+                API.database.list({
+                }).then(function (response) {
+                    // 載入資料庫
+                    return UI.render.razorHelper(@Html.Raw(Json.Encode(viewPathCiphertext)), "RenderLoadDatabaseOptions", response.List);
+                }).then(function (rendered) {
+                    $("#modal-load-database-table .select-database").html(rendered);
+                    // 切換資料庫時，載入資料表
+                    $("#modal-load-database-table .select-database").off("change");
+                    $("#modal-load-database-table .select-database").on("change", function () {
+                        API.databaseTable.list({
+                            DatabaseId: $(this).val()
+                        }).then(function (response) {
+                            return UI.render.razorHelper(@Html.Raw(Json.Encode(viewPathCiphertext)), "RenderDatabaseTableList", response.List);
+                        }).then(function (rendered) {
+                            // 選取資料表
+                            $("#modal-load-database-table .list-database-tables-container").html(rendered);
+                            $("#modal-load-database-table .list-database-tables-container .list-group-item").on("click", function () {
+                                $("#modal-load-database-table .list-database-tables-container .list-group-item.active").removeClass("active");
+                                $(this).addClass("active");
+                            });
+                        });
+                    });
+                    // 預設沒有選資料庫，清空資料表
+                    $("#modal-load-database-table .list-database-tables-container").empty();
+                    // 選取資料表 > 確定
+                    $("#modal-load-database-table .btn-ok").off("click");
+                    $("#modal-load-database-table .btn-ok").on("click", function () {
+                        var $item = $("#modal-load-database-table .list-database-tables-container .list-group-item.active");
+                        if ($item.length == 0) {
+                            UI.notice("請選擇資料表", "warning");
+                            return;
+                        }
+                        var databaseId = $item.attr("data-database-id");
+                        var tableName = $item.attr("data-table-name");
+                        API.databaseTable.get({
+                            DatabaseId: databaseId,
+                            TableName: tableName,
+                            IncludeColumns: true
+                        }).then(function (response) {
+                            $("#modal-load-database-table").modal("hide");
+                            resolve(response.Table);
+                        });
+                    });
+                    $("#modal-load-database-table").modal("show");
+                });
+            }
+            else if (action === "save") {
+                $("#modal-save-database-table .text-table-name").val(data.TableName);
+                $("#modal-save-database-table .text-table-alias").val(data.TableAlias);
+                $("#modal-save-database-table .text-table-description").val(data.TableDescription);
+                API.database.list({
+                }).then(function (response) {
+                    return UI.render.razorHelper(@Html.Raw(Json.Encode(viewPathCiphertext)), "RenderSaveDatabaseOptions", response.List);
+                }).then(function (rendered) {
+                    $("#modal-save-database-table .select-database").html(rendered);
+                    // 確定儲存資料表
+                    $("#modal-save-database-table .btn-ok").off("click");
+                    $("#modal-save-database-table .btn-ok").on("click", function () {
+                        var databaseId = $("#modal-save-database-table .select-database").val();
+                        if (!databaseId) {
+                            UI.notice("請選擇資料庫", "warning");
+                            return;
+                        }
+                        // 新增資料表
+                        API.databaseTable.create({
+                            Table: {
+                                DatabaseId: databaseId,
+                                TableName: $("#modal-save-database-table .text-table-name").val(),
+                                TableAlias: $("#modal-save-database-table .text-table-alias").val(),
+                                Description: $("#modal-save-database-table .text-table-description").val(),
+                                Columns: data.Columns
+                            }
+                        }).then(function (response) {
+                            // 如果已經有相同名稱的資料表，則顯示對話框
+                            if (response.IsExists) {
+                                var tableName = $("#modal-save-database-table .text-table-name").val();
+                                return UI.confirm("已經存在名稱為 [" + tableName + "] 資料表，是否覆蓋現有的資料？", "儲存資料表");
+                            }
+                            return Promise.resolve(response);
+                        }).then(function (responseOrConfirmed) {
+                            if (typeof responseOrConfirmed == "boolean" && responseOrConfirmed) {
+                                // 確定覆蓋相同名稱的資料表
+                                return API.databaseTable.update({
+                                    Table: {
+                                        DatabaseId: databaseId,
+                                        TableName: $("#modal-save-database-table .text-table-name").val(),
+                                        TableAlias: $("#modal-save-database-table .text-table-alias").val(),
+                                        Description: $("#modal-save-database-table .text-table-description").val(),
+                                        Columns: data.Columns
+                                    },
+                                    IncludeColumns: true
+                                });
+                            }
+                            return Promise.resolve(responseOrConfirmed);
+                        }).then(function (response) {
+                            if (response.IsSuccessed) {
+                                $("#modal-save-database-table").modal("hide");
+                                resolve();
+                            }
+                        });
+                    });
+                    $("#modal-save-database-table").modal("show");
+                });
+            }
+            else {
+                reject("無效的參數 action: " + action);
+            }
+        });
+    }
+</script>
+
